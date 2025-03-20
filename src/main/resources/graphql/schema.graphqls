@@ -1,15 +1,22 @@
-type Message {
-    content: String
+type Message{
+    sender: String!
+    receiver: String!
+    content: String!
+    timestamp: String!
 }
-
-type Query {
-    messages: [Message]
+type Query{
+    test:String
 }
 
 type Mutation {
-    addMessage(content: String!): Message
+    userEnteredVenue(userId: String!, venueId: String!): String
+    userLeftVenue(userId: String!, venueId: String!): String
+
+    sendMessage(sender: String!, receiver: String!, content: String!): Message
 }
 
-type Subscription {
-    messageSubscription: Message
+
+type Subscription{
+    receiveMessages(userId: String!): Message
+    receiveUserList(userId: String!): [String]
 }

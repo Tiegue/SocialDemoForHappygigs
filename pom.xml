@@ -8,11 +8,11 @@
 		<version>3.4.3</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.graphql.demo</groupId>
-	<artifactId>demo</artifactId>
+	<groupId>tiegue.wellyeats</groupId>
+	<artifactId>socialdemo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>demo</name>
-	<description>Demo project for Spring Boot</description>
+	<name>socialDemo</name>
+	<description>SocialDemo project for Spring Boot</description>
 	<url/>
 	<licenses>
 		<license/>
