@@ -20,7 +20,7 @@ public class VenueTrackerMutation {
         return "User " + userId + " entered venue " + venueId;
     }
 
-    @MutationMapping("userLeftVenue")
+    @MutationMapping
     public String userLeftVenue(@Argument String userId, @Argument String venueId) {
         venueTrackerService.userLeftVenue(userId, venueId);
         return "User " + userId + " left venue " + venueId;

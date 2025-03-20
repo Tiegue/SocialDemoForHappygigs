@@ -25,7 +25,7 @@ public class SocialSubscription {
                 .filter(msg -> msg.getReceiver().equals(userId));
     }
 
-    @SubscriptionMapping("receiveUserList")
+    @SubscriptionMapping
     public Publisher<Set<String>> receiveUserList(@Argument String userId) {
         return venueTrackerService.getUserListSink().asFlux();
     }
