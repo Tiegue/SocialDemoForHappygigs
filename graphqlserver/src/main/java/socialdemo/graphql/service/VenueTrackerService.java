@@ -17,6 +17,10 @@ import java.util.Set;
 @Service
 public class VenueTrackerService {
     private final Map<String, VenuePresence> venueUsers = new HashMap<>();
+    //multicast mode
+//    private final Sinks.Many<Message> messageSink = Sinks.many().multicast().onBackpressureBuffer();
+//    private final Sinks.Many<Set<String>> userListSink = Sinks.many().multicast().onBackpressureBuffer();
+
     private final Sinks.Many<Message> messageSink = Sinks.many().multicast().onBackpressureBuffer();
     private final Sinks.Many<Set<String>> userListSink = Sinks.many().multicast().onBackpressureBuffer();
 
@@ -28,6 +32,7 @@ public class VenueTrackerService {
         // Notify existing users that a new user arrived.
         for (String existingUser : existingUsers) {
             sendMessage(newUserId, existingUser, "A new user: " + newUserId + " entered this venue!");
+            System.out.println("New user: " + newUserId + " entered this venue: " + existingUser);
         }
 
         // Send the list of existing users to the new user
