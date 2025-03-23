@@ -28,15 +28,54 @@ This feels cleaner and more intuitive than the traditional `src` folder in older
 
 React hydration mismatch, a common error when using Next.js with Server-Side Rendering (SSR) and client-only behavior (like state or browser-specific code).
 - solution: Create a wrapper client component.
-## Subscriptions 
-- Bug: Since the logic is correct, but both message and user list show null in the frontend.
-- Reason: In EnterVenue.tsx, click "Enter Venue"
-  That mutation:
-  Emits to userListSink
-  Emits messages to messageSink
-  Then the React component updates entered = true and subscribes
-  😢 Subscriptions miss the emission because they weren’t listening yet.
 
+## Bug Report: GraphQL Subscriptions Not Working (Frontend shows null)
 
-(Placeholder – write down your notes here about dynamically importing components.)
+### 🐞 Bug Description
+Although the backend logic was correct, both the **message** and **user list** in the frontend appeared as `null`.
+
+### 🔍 Root Cause
+WebSocket was not enabled on the backend, so Apollo Client couldn't connect and receive GraphQL subscription data.
+
+### 🛠 Solution
+Add the following two lines to your Spring Boot `application.properties`:
+
+```properties
+spring.graphql.websocket.path=/graphql
+spring.graphql.websocket.connection-init-timeout=30s
+```
+
+### 🧾 How to Verify
+Check the backend startup logs after running `mvn clean install` or starting the application. You should see:
+
+- ✅ `Netty started on port 4446 (http)`
+- ✅ `GraphQL endpoint WebSocket /graphql`
+- ✅ `GraphQL endpoint HTTP POST /graphql`
+
+These log lines confirm that the server is ready to handle both HTTP and WebSocket GraphQL connections.
+
+### 💡 Lesson Learned
+> Fixing this bug took me a long time. If I had written proper unit tests, I could have found the issue more easily. Good testing saves time and helps catch integration issues like this early.
+
+---
+
+### 🔁 Summary of Debugging Steps
+
+1. ❌ Frontend showed no message/user list even though backend logic seemed correct.
+2. 🔍 Used `console.log` and `<pre>` debug output to confirm Apollo `messageData` was always `null`.
+3. 🧪 Tested WebSocket connection manually:
+   ```js
+   new WebSocket("ws://localhost:4446/graphql")
+   ```
+   → It failed, confirming no WebSocket support was active.
+4. ✅ Realized Spring Boot WebSocket for GraphQL was not enabled by default.
+5. 🛠 Added configuration:
+   ```properties
+   spring.graphql.websocket.path=/graphql
+   spring.graphql.websocket.connection-init-timeout=30s
+   ```
+6. ✅ Restarted backend, saw correct logs in the console.
+7. 🚀 Retested in the browser → WebSocket connection succeeded.
+8. 🎉 Messages and user list began showing correctly in the frontend.
+9. Delay the mutation, which gives the useSubscription() time to connect before the backend sends the user list. Works well with multicast().
 

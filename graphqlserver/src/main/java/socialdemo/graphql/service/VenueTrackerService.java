@@ -17,22 +17,25 @@ import java.util.Set;
 @Service
 public class VenueTrackerService {
     private final Map<String, VenuePresence> venueUsers = new HashMap<>();
-    //multicast mode
-//    private final Sinks.Many<Message> messageSink = Sinks.many().multicast().onBackpressureBuffer();
-//    private final Sinks.Many<Set<String>> userListSink = Sinks.many().multicast().onBackpressureBuffer();
-
+    //Scenarios where only live users need to see the event
     private final Sinks.Many<Message> messageSink = Sinks.many().multicast().onBackpressureBuffer();
     private final Sinks.Many<Set<String>> userListSink = Sinks.many().multicast().onBackpressureBuffer();
+    //Any subscriber that connects later immediately receives the last value
+//    private final Sinks.Many<Message> messageSink = Sinks.many().replay().limit(1);
+//    private final Sinks.Many<Set<String>> userListSink = Sinks.many().replay().limit(1);
+
+
 
     public void userEnteredVenue(String newUserId, String venueId) {
-        venueUsers.put(venueId, new VenuePresence(venueId));
+        venueUsers.computeIfAbsent(venueId, VenuePresence::new);
         VenuePresence venue = venueUsers.get(venueId);
         Set<String> existingUsers = venue.getExistingUsers(newUserId);
+        System.out.println(existingUsers);
 
         // Notify existing users that a new user arrived.
         for (String existingUser : existingUsers) {
             sendMessage(newUserId, existingUser, "A new user: " + newUserId + " entered this venue!");
-            System.out.println("New user: " + newUserId + " entered this venue: " + existingUser);
+            System.out.println("New user: " + newUserId + " entered this venue-" + venueId + " which has : " + existingUser);
         }
 
         // Send the list of existing users to the new user

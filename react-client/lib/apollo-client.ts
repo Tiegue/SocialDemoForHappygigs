@@ -6,7 +6,13 @@ import { getMainDefinition } from "@apollo/client/utilities";
 import { onError } from '@apollo/client/link/error';
 
 const httpLink = new HttpLink({ uri: "http://localhost:4446/graphql" });
-const wsLink = typeof window !== "undefined" ? new GraphQLWsLink(createClient({url: "ws://localhost:4446/graphql"})) : null;
+const wsLink = typeof window !== 'undefined'
+    ? new GraphQLWsLink(
+        createClient({
+            url: 'ws://localhost:4446/graphql', // Make sure this matches backend
+        })
+    )
+    : null;
 const splitLink = typeof window !== "undefined" && wsLink != null
     ? split(
         ({ query }) => {

@@ -29,11 +29,141 @@ This project is a **Next.js App Router** frontend built to connect with the Happ
 
 ---
 
-## Project Structure
-react-client/ ├── app/ │ ├── layout.tsx # Root layout with Apollo provider │ ├── page.tsx # Home page with EnterVenue component │ ├── providers.tsx # ApolloProvider wrapper │ └── components/ │ └── EnterVenue.tsx # UI + mutation/subscriptions logic ├── lib/ │ └── apollo-client.ts # Apollo Client setup (HTTP + WebSocket) ├── public/ # Static assets ├── tailwind.config.ts # Tailwind config ├── postcss.config.mjs # Tailwind processor ├── tsconfig.json # TypeScript config └── package.json
+## 📁 Frontend Project Structure (React + Apollo + Next.js App Router)
 
+```
+react-client/
+├── app/                        # Next.js App Router root
+│   ├── components/             # Shared React components
+│   │   ├── EnterVenue.tsx      # Main venue-entry component with subscriptions
+│   │   └── ClientEnterVenueWrapper.tsx  # Dynamic client-only wrapper for EnterVenue
+│   ├── layout.tsx              # Root layout wrapper (includes Providers)
+│   ├── page.tsx                # Main page entry (renders ClientEnterVenueWrapper)
+│   └── providers.tsx           # ApolloProvider wrapper for GraphQL context
+│
+├── lib/
+│   └── apollo-client.ts        # Apollo Client config (includes wsLink for subscriptions)
+│
+├── styles/
+│   └── globals.css             # Tailwind and global styles
+│
+├── public/                     # Static assets (if needed)
+│
+├── tsconfig.json               # TypeScript config
+├── tailwind.config.ts          # Tailwind CSS configuration
+├── postcss.config.js           # PostCSS for Tailwind
+├── package.json                # Project dependencies and scripts
+└── README.md                   # Project documentation
+```
 
 ---
+
+### ✅ Notes
+
+- Uses **Next.js App Router** (`app/` folder instead of `pages/`)
+- Subscriptions handled via **Apollo Client + graphql-ws**
+- Styled with **Tailwind CSS**
+- Organized for **clean component separation** (app/lib/components)
+- `ClientEnterVenueWrapper.tsx` dynamically imports the `EnterVenue` component on the client only
+
+---
+
+## 🧠 Frontend Main Logic Overview (React + Apollo + Next.js)
+
+This section describes the **main logic**, **component relationships**, and **file responsibilities** in the SocialDemo frontend project.
+
+---
+
+### 📁 Key Files and Their Roles
+
+#### `app/page.tsx`
+- The root route page (`/`)
+- Renders the `<EnterVenue />` component inside the `<Providers>` wrapper
+
+#### `app/layout.tsx`
+- The root layout file used by Next.js App Router
+- Wraps all pages with shared structure and styles
+- Includes the `Providers` component to inject the Apollo context
+
+#### `app/providers.tsx`
+- Wraps the application with `<ApolloProvider client={client} />`
+- Makes Apollo Client available to all components using GraphQL hooks
+
+#### `lib/apollo-client.ts`
+- Configures Apollo Client:
+  - HTTP link for queries/mutations
+  - WebSocket link for subscriptions
+  - Uses `split()` to route between HTTP and WS
+- Creates and exports a singleton Apollo Client
+
+#### `app/components/ClientEnterVenueWrapper.tsx`
+- A client-only wrapper for `<EnterVenue />`
+- Dynamically imports `EnterVenue` with `ssr: false` to avoid hydration mismatch
+
+#### `app/components/EnterVenue.tsx`
+- Core interactive component where users:
+  - Input `userId` and `venueId`
+  - Trigger mutations (`enterVenue`, `leaveVenue`)
+  - Subscribe to:
+    - `receiveMessages` → single-message updates
+    - `receiveUserList` → list of users in venue
+- Displays:
+  - Input form
+  - Current users
+  - Latest message
+
+---
+
+### 🔗 Logical Flow (Click "Enter Venue")
+
+1. User types `userId` and `venueId` → clicks **Enter Venue**
+2. `entered` state becomes `true`
+3. Apollo calls `ENTER_VENUE` mutation to backend
+4. React subscriptions start (due to `skip: !entered`)
+
+#### Subscriptions now activate:
+- `receiveMessages(userId)` → shows new arrivals
+- `receiveUserList(userId)` → shows who is already present
+
+5. Backend pushes messages/user list via WebSocket
+6. Apollo Client receives updates → triggers React re-render
+
+---
+
+### 🔄 Click "Leave Venue"
+
+1. User clicks **Leave Venue**
+2. Calls `LEAVE_VENUE` mutation
+3. On completion → sets `entered = false`
+4. Subscriptions automatically stop (skipped again)
+5. UI resets
+
+---
+
+### 🧠 Component + Data Relationship Summary
+
+```txt
+page.tsx
+  └── layout.tsx
+        └── providers.tsx
+              └── EnterVenue.tsx
+                     ├── useMutation(ENTER_VENUE)
+                     ├── useSubscription(receiveMessages)
+                     ├── useSubscription(receiveUserList)
+                     └── useMutation(LEAVE_VENUE)
+```
+
+---
+
+### ✅ React GraphQL Hook Flow Summary
+
+| File | Purpose |
+|------|---------|
+| `apollo-client.ts` | Defines the connection logic (HTTP vs WS) |
+| `providers.tsx` | Injects Apollo Client into React |
+| `EnterVenue.tsx` | Handles user logic, UI, GraphQL operations |
+| `page.tsx` | Loads the component at runtime |
+
 
 ## Main Features
 

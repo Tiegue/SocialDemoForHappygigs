@@ -1,7 +1,7 @@
 "use client";
 
 import {gql, useMutation, useSubscription } from "@apollo/client";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 const ENTER_VENUE = gql`
     mutation EnterVenue($userId: String!, $venueId: String!) {
@@ -36,6 +36,17 @@ export default function EnterVenue() {
     const [venueId, setVenueId] = useState("");
     const [entered, setEntered] = useState(false);
 
+    //Option1: Delay Mutation Trigger
+    useEffect(() => {
+        if (entered && userId && venueId) {
+            const timeout = setTimeout(() => {
+                enterVenue();
+            }, 200);
+
+            return () => clearTimeout(timeout);
+        }
+    }, [entered, userId, venueId]);
+
     const [enterVenue] = useMutation(ENTER_VENUE, {
         variables: {userId, venueId},
         onCompleted: () => {setEntered(true);},
@@ -55,6 +66,15 @@ export default function EnterVenue() {
         variables: {userId},
         skip: !entered,
     })
+    // console.log("🧾 messageData:", messageData);
+    // console.log("👥 userListData:", userListData);
+
+    // const { data: messageDataTemp, error: messageError } = useSubscription(RECEIVE_MESSAGE, {
+    //     variables: {userId, venueId},
+    //     skip: !entered,
+    // });
+    // console.log("❌ messageError:", messageError);
+
 
     return (
         <div className="max-w-md mx-auto bg-white shadow p-6 rounded-lg">
@@ -73,7 +93,10 @@ export default function EnterVenue() {
                     className="w-full border px-3 py-2 rounded-md"
                 />
                 <button
-                    onClick={() => enterVenue()}
+                    onClick={() =>
+                        // enterVenue()
+                         setEntered(true) // Option1: Change to true only.
+                    }
                     className="w-full bg-blue-20 text-white py-10 rounded-md hover:bg-blue-700 transition"
                 >
                     Enter Venue
@@ -84,10 +107,16 @@ export default function EnterVenue() {
                 <div className="mt-6 space-y-4">
                     <div>
                         <h3 className="font-semibold">Live Messages:</h3>
-                        {messageData?.receiveMassages ? (
+                        {/* DEBUG RAW OUTPUT */}
+                        <pre className="bg-gray-100 text-xs p-2 rounded text-black">
+                            {JSON.stringify(messageData, null, 2)}
+                        </pre>
+
+                        {messageData?.receiveMessages?.content ?  (
                             <div className="text-sm text-gray-700">
-                                <strong>{messageData.receiverMessages.sender}:</strong> {messageData.receiveMessages.content}{' '}
-                                <span className="text-sm text-grey-500">({messageData.receiverMessages.timestamp})</span>
+                                <strong>{messageData.receiveMessages.sender}:</strong>
+                                {messageData.receiveMessages.content}
+                                <span className="text-xs text-gray-500"> ({messageData.receiveMessages.timestamp})</span>
                             </div>
                         ) : (
                             <p className="text-sm text-gray-500">No messages yet.</p>
