@@ -36,7 +36,7 @@ export default function EnterVenue() {
     const [venueId, setVenueId] = useState("");
     const [entered, setEntered] = useState(false);
 
-    //Option1: Delay Mutation Trigger
+    // Delay Mutation Trigger
     useEffect(() => {
         if (entered && userId && venueId) {
             const timeout = setTimeout(() => {
@@ -60,6 +60,11 @@ export default function EnterVenue() {
     const { data: messageData } = useSubscription(RECEIVE_MESSAGE, {
         variables: {userId, venueId},
         skip: !entered,
+        onData: ({ data }) => {
+            if (data?.data?.receiveMessages) {
+                navigator.vibrate?.(300); // buzz for 300ms
+            }
+        },
     });
 
     const { data: userListData } = useSubscription(RECEIVE_USER_LIST, {
@@ -95,7 +100,7 @@ export default function EnterVenue() {
                 <button
                     onClick={() =>
                         // enterVenue()
-                         setEntered(true) // Option1: Change to true only.
+                         setEntered(true) // Change to true only.
                     }
                     className="w-full bg-blue-20 text-white py-10 rounded-md hover:bg-blue-700 transition"
                 >
