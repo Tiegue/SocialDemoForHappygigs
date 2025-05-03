@@ -42,3 +42,195 @@ The application follows a layered architecture:
 ## Conclusion
 This application demonstrates how to use **Spring Boot WebFlux** with **GraphQL**, leveraging **Flux and Mono** for real-time event streaming. 🚀
 
+# **HappyGigs Social Module Design Document (Revised)**
+
+## **1. Overview**
+The **Social Module** in HappyGigs is an independent microservice that enables **real-time venue-based social interactions** using **GraphQL subscriptions**, **Kafka**, **Redis**, and **PostgreSQL**.
+
+### **Key Features:**
+- **Real-time notifications** when users enter/leave a venue.
+- **Buzz feature**: Buzz all existing users' devices in a venue when a new user arrives.
+- **User list sync** on entry/exit.
+- **User chat** within a venue.
+- **Encrypted chat history storage** — retrievable only by both involved users.
+- **Integration with Happy module** to fetch venue details.
+
+---
+
+## **2. System Architecture**
+
+### **2.1 Architecture Overview**
+```plaintext
+                +---------------------+
+                |     Happy Module    |
+                | (Venue Information) |
+                +---------+-----------+
+                          |
+                          v
+               +----------+-----------+
+               |      Kafka Topics     |  <--- Async events: userEntered, userLeft, messageSent
+               +----------+-----------+
+                          |
+        +-----------------+-----------------+
+        |                                   |
++---------------------+        +------------------------+
+|   Social API (GraphQL) |        |   Redis Cache Layer     |
+|  - Subscriptions       |        |  - Venue Presence       |
+|  - Mutations           |        |  - Message Queues       |
++----------+------------+        +------------------------+
+           |
+           v
+ +--------------------------+
+ | VenueTrackerService      |
+ | - Business Logic         |
+ | - Kafka Producers        |
+ +-----------+--------------+
+             |
+             v
+    +--------+--------+
+    |  PostgreSQL DB   |
+    | - Chat Histories |
+    | - Encrypted Data |
+    +------------------+
+```
+
+---
+
+## **3. Data Models**
+
+### **3.1 Message**
+```java
+public class Message {
+    private String sender;
+    private String receiver;
+    private String content; // Encrypted
+    private String timestamp;
+}
+```
+
+### **3.2 VenuePresence**
+```java
+public class VenuePresence {
+    private String venueId;
+    private Set<String> users;
+}
+```
+
+### **3.3 ChatHistory**
+```java
+public class ChatHistory {
+    private UUID id;
+    private String sender;
+    private String receiver;
+    private String encryptedMessage;
+    private String timestamp;
+}
+```
+
+### **3.4 Kafka Event Models**
+```java
+public class UserEnteredEvent {
+    private String userId;
+    private String venueId;
+    private String timestamp;
+}
+
+public class UserLeftEvent {
+    private String userId;
+    private String venueId;
+    private String timestamp;
+}
+
+public class ChatMessageEvent {
+    private String sender;
+    private String receiver;
+    private String content;
+    private String timestamp;
+}
+```
+
+---
+
+## **4. GraphQL API**
+
+### **4.1 Mutations**
+```graphql
+type Mutation {
+    userEnteredVenue(userId: String!, venueId: String!): String
+    userLeftVenue(userId: String!, venueId: String!): String
+    sendMessage(sender: String!, receiver: String!, content: String!): String
+}
+```
+
+### **4.2 Subscriptions**
+```graphql
+type Subscription {
+    receiveMessages(userId: String!): Message
+    receiveUserList(venueId: String!): [String]
+    receiveBuzz(userId: String!): Boolean
+}
+```
+
+---
+
+## **5. Kafka Topics**
+- `user-entered`: triggered when a user enters a venue.
+- `user-left`: triggered on exit.
+- `message-sent`: messages between users.
+
+---
+
+## **6. Redis Usage**
+- **Cache presence data**: maintain list of users in venues.
+- **Pub/Sub optional**: for internal signaling.
+
+---
+
+## **7. PostgreSQL Usage**
+- Store **encrypted** chat history.
+- Record user entry/exit logs (optional).
+
+---
+
+## **8. Encryption Strategy**
+- Use **AES encryption**.
+- Keys derived from user IDs.
+- Only sender and receiver can decrypt.
+
+---
+
+## **9. Workflow Scenarios**
+
+### **9.1 New User Enters Venue**
+1. Sends `userEnteredVenue` mutation.
+2. Backend:
+   - Updates Redis presence.
+   - Sends Kafka `user-entered` event.
+   - Triggers buzz to all existing users.
+   - Sends current user list to new user.
+
+### **9.2 User Sends Message**
+1. Sends `sendMessage` mutation.
+2. Backend:
+   - Encrypts message.
+   - Stores to PostgreSQL.
+   - Pushes via Kafka `message-sent`.
+
+### **9.3 Subscriptions**
+- `receiveMessages`: returns new messages.
+- `receiveUserList`: returns live user list.
+- `receiveBuzz`: UI should buzz the user device.
+
+---
+
+## **10. Future Enhancements**
+- Integrate with **Keycloak** for identity/auth.
+- Deliver media messages (images/audio).
+- Venue popularity leaderboard.
+
+---
+
+## **11. Conclusion**
+This revised architecture of the Social Module integrates **Kafka, Redis, and PostgreSQL** for high scalability and data integrity. It offers real-time communication and interaction within physical venues, forming the foundation for a richer **social layer in HappyGigs**.
+
+🚀 Ready for secure, scalable, and social interactions!
