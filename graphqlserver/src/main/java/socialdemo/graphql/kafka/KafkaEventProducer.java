@@ -1,12 +1,13 @@
 package socialdemo.graphql.kafka;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import socialdemo.graphql.event.ChatMessageEvent;
 import socialdemo.graphql.event.UserEnteredEvent;
+import socialdemo.graphql.event.UserLeftEvent;
 
-import static socialdemo.graphql.util.JsonUtil.toJson;
+import static socialdemo.graphql.util.JsonUtils.toJson;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +25,7 @@ public class KafkaEventProducer {
         kafkaTemplate.send("user-left", payload);
     }
 
-    public void sendUserMessage(ChatMesageEvent event) {
+    public void sendUserMessage(ChatMessageEvent event) {
         String payload = toJson(event);
         kafkaTemplate.send("chat-message", payload);
     }

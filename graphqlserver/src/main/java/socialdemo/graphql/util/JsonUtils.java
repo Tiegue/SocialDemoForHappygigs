@@ -3,10 +3,10 @@ package socialdemo.graphql.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class JsonUtil {
+public class JsonUtils {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private JsonUtil() {}
+    private JsonUtils() {}
 
     public static String toJson(Object obj) {
         try {

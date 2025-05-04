@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class VenueTrackerService {
     private final Map<String, VenuePresence> venueUsers = new HashMap<>();
-    //Scenarios where only live users need to see the event
+    //ScenarvenueTrackerService.processChatMessage(event);ios where only live users need to see the event
     private final Sinks.Many<Message> messageSink = Sinks.many().multicast().onBackpressureBuffer();
     private final Sinks.Many<UserListPayload> userListSink = Sinks.many().multicast().onBackpressureBuffer();
 

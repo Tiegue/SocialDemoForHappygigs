@@ -1,11 +1,13 @@
 package socialdemo.graphql.event;
 
-public class UserEnteredEvent {
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
+
+public class UserLeftEvent {
     private String userId;
     private String venueId;
     private long timestamp;
 
-    public UserEnteredEvent(String userId, String venueId, long timestamp) {
+    public UserLeftEvent(String userId, String venueId, long timestamp) {
         this.userId = userId;
         this.venueId = venueId;
         this.timestamp = timestamp;

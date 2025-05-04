@@ -5,6 +5,7 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SubscriptionMapping;
 import org.springframework.stereotype.Controller;
+import socialdemo.graphql.event.ChatMessageEvent;
 import socialdemo.graphql.model.Message;
 import socialdemo.graphql.model.UserListPayload;
 import socialdemo.graphql.service.VenueTrackerService;
@@ -31,6 +32,12 @@ public class SocialSubscription {
         return venueTrackerService.getUserListSink().asFlux()
                 .filter(payload -> payload.userId().equals(userId))
                 .map(UserListPayload::users);
+    }
+
+    @SubscriptionMapping
+    public Publisher<ChatMessageEvent> receiveChatMessages(@Argument String userId) {
+        return venueTrackerService.getChatSink().asFlux()
+                .filter(msg -> msg.receiver().equals(userId));
     }
 
     @QueryMapping
