@@ -8,6 +8,7 @@ import socialdemo.graphql.event.UserEnteredEvent;
 import socialdemo.graphql.event.UserLeftEvent;
 import socialdemo.graphql.model.Message;
 import socialdemo.graphql.service.VenueTrackerService;
+import socialdemo.graphql.util.JsonUtils;
 
 @Component
 public class KafkaEventConsumer {
@@ -18,25 +19,25 @@ public class KafkaEventConsumer {
         this.venueTrackerService = venueTrackerService;
     }
 
-    @KafkaListener(topics = "user-entered", groupId = "social-group", containerFactory = "kafkaListenerContainerFactory")
-    public void handleUserEntered(UserEnteredEvent event) {
-        System.out.println("Kafka received user-entered: " + event);
+    @KafkaListener(topics = "user-entered", groupId = "social-group")
+    public void handleUserEntered(String payload) {
+        UserEnteredEvent userEnteredEvent = JsonUtils.fromJson(payload, UserEnteredEvent.class);
 
-        venueTrackerService.userEnteredVenue(event.getUserId(), event.getVenueId());
+        venueTrackerService.userEnteredVenue(userEnteredEvent.getUserId(), userEnteredEvent.getVenueId());
     }
 
-    @KafkaListener(topics = "user-left", groupId = "social-group", containerFactory = "kafkaListenerContainerFactory")
-    public void handleUserLeft(UserLeftEvent event) {
-        System.out.println("Kafka received user-left: " + event);
+    @KafkaListener(topics = "user-left", groupId = "social-group")
+    public void handleUserLeft(String payload) {
+        UserLeftEvent userLeftEvent = JsonUtils.fromJson(payload, UserLeftEvent.class);
 
-        venueTrackerService.userLeftVenue(event.getUserId(), event.getVenueId());
+        venueTrackerService.userLeftVenue(userLeftEvent.getUserId(), userLeftEvent.getVenueId());
     }
 
-    @KafkaListener(topics = "chat-messages", groupId = "social-group", containerFactory = "kafkaListenerContainerFactory")
-    public void handleChatMessage(ChatMessageEvent event) {
-        System.out.println("Kafka received chat-message: " + event);
+    @KafkaListener(topics = "chat-messages", groupId = "social-group")
+    public void handleChatMessage(String payload) {
+        ChatMessageEvent chatMessageEvent = JsonUtils.fromJson(payload, ChatMessageEvent.class);
 
-        venueTrackerService.processChatMessage(event);
+        venueTrackerService.sendPrivateChat(chatMessageEvent);
     }
 }
 

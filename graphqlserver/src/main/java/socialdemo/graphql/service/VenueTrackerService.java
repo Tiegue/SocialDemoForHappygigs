@@ -3,7 +3,9 @@ package socialdemo.graphql.service;
 
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
+import socialdemo.graphql.event.ChatMessageEvent;
 import socialdemo.graphql.model.Message;
 import socialdemo.graphql.model.UserListPayload;
 import socialdemo.graphql.model.VenuePresence;
@@ -23,6 +25,9 @@ public class VenueTrackerService {
     //ScenarvenueTrackerService.processChatMessage(event);ios where only live users need to see the event
     private final Sinks.Many<Message> messageSink = Sinks.many().multicast().onBackpressureBuffer();
     private final Sinks.Many<UserListPayload> userListSink = Sinks.many().multicast().onBackpressureBuffer();
+
+    private final Map<String, Sinks.Many<ChatMessageEvent>> userChatSinks = new ConcurrentHashMap<>();
+
 
     //private final Map<String, Sinks.Many<Set<String>>> userListSinks = new ConcurrentHashMap<>();
     //private final Sinks.Many<Set<String>> userListSinks = Sinks.many().multicast().onBackpressureBuffer();
@@ -77,6 +82,19 @@ public class VenueTrackerService {
     }
     public Sinks.Many<UserListPayload> getUserListSink() {
         return userListSink;
+    }
+
+
+    public void sendPrivateChat(ChatMessageEvent msg) {
+        userChatSinks.computeIfAbsent(msg.getReceiver(), id ->
+                Sinks.many().multicast().onBackpressureBuffer()
+        ).tryEmitNext(msg);
+    }
+
+    public Flux<ChatMessageEvent> subscribeToUser(String userId) {
+        return userChatSinks
+                .computeIfAbsent(userId, id -> Sinks.many().multicast().onBackpressureBuffer())
+                .asFlux();
     }
 
     // For debug

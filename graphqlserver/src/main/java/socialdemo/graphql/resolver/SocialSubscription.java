@@ -36,8 +36,7 @@ public class SocialSubscription {
 
     @SubscriptionMapping
     public Publisher<ChatMessageEvent> receiveChatMessages(@Argument String userId) {
-        return venueTrackerService.getChatSink().asFlux()
-                .filter(msg -> msg.receiver().equals(userId));
+        return venueTrackerService.subscribeToUser(userId);
     }
 
     @QueryMapping

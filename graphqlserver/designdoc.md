@@ -51,7 +51,7 @@ The **Social Module** in HappyGigs is an independent microservice that enables *
 - **Real-time notifications** when users enter/leave a venue.
 - **Buzz feature**: Buzz all existing users' devices in a venue when a new user arrives.
 - **User list sync** on entry/exit.
-- **User chat** within a venue.
+- **One-on-one chat** within a venue.
 - **Encrypted chat history storage** — retrievable only by both involved users.
 - **Integration with Happy module** to fetch venue details.
 
@@ -68,7 +68,7 @@ The **Social Module** in HappyGigs is an independent microservice that enables *
                           |
                           v
                +----------+-----------+
-               |      Kafka Topics     |  <--- Async events: userEntered, userLeft, messageSent
+               |      Kafka Topics     |  <--- Async events: userEntered, userLeft, chatMessageSent
                +----------+-----------+
                           |
         +-----------------+-----------------+
@@ -84,6 +84,7 @@ The **Social Module** in HappyGigs is an independent microservice that enables *
  | VenueTrackerService      |
  | - Business Logic         |
  | - Kafka Producers        |
+ | - Per-user Sinks         |
  +-----------+--------------+
              |
              v
@@ -98,17 +99,28 @@ The **Social Module** in HappyGigs is an independent microservice that enables *
 
 ## **3. Data Models**
 
-### **3.1 Message**
+### **3.1 Message (System Message)**
 ```java
 public class Message {
     private String sender;
     private String receiver;
-    private String content; // Encrypted
+    private String content; // Notification
     private String timestamp;
 }
 ```
 
-### **3.2 VenuePresence**
+### **3.2 ChatMessageEvent (Private Chat Message)**
+```java
+public class ChatMessageEvent {
+    private String sender;
+    private String receiver;
+    private String venueId;
+    private String content; // Encrypted
+    private long timestamp;
+}
+```
+
+### **3.3 VenuePresence**
 ```java
 public class VenuePresence {
     private String venueId;
@@ -116,36 +128,15 @@ public class VenuePresence {
 }
 ```
 
-### **3.3 ChatHistory**
+### **3.4 ChatHistory**
 ```java
 public class ChatHistory {
     private UUID id;
     private String sender;
     private String receiver;
     private String encryptedMessage;
-    private String timestamp;
-}
-```
-
-### **3.4 Kafka Event Models**
-```java
-public class UserEnteredEvent {
-    private String userId;
     private String venueId;
-    private String timestamp;
-}
-
-public class UserLeftEvent {
-    private String userId;
-    private String venueId;
-    private String timestamp;
-}
-
-public class ChatMessageEvent {
-    private String sender;
-    private String receiver;
-    private String content;
-    private String timestamp;
+    private long timestamp;
 }
 ```
 
@@ -158,7 +149,8 @@ public class ChatMessageEvent {
 type Mutation {
     userEnteredVenue(userId: String!, venueId: String!): String
     userLeftVenue(userId: String!, venueId: String!): String
-    sendMessage(sender: String!, receiver: String!, content: String!): String
+    sendSystemMessage(sender: String!, receiver: String!, content: String!): String
+    sendChatMessage(sender: String!, receiver: String!, venueId: String!, content: String!): String
 }
 ```
 
@@ -166,8 +158,9 @@ type Mutation {
 ```graphql
 type Subscription {
     receiveMessages(userId: String!): Message
-    receiveUserList(venueId: String!): [String]
+    receiveUserList(userId: String!): [String]
     receiveBuzz(userId: String!): Boolean
+    receiveChatMessages(userId: String!): ChatMessageEvent
 }
 ```
 
@@ -176,7 +169,7 @@ type Subscription {
 ## **5. Kafka Topics**
 - `user-entered`: triggered when a user enters a venue.
 - `user-left`: triggered on exit.
-- `message-sent`: messages between users.
+- `chat-messages`: one-on-one messages between users.
 
 ---
 
@@ -209,17 +202,24 @@ type Subscription {
    - Triggers buzz to all existing users.
    - Sends current user list to new user.
 
-### **9.2 User Sends Message**
-1. Sends `sendMessage` mutation.
+### **9.2 User Sends System Message**
+1. Sends `sendSystemMessage` mutation.
+2. Backend:
+   - Broadcasts via Sink.
+
+### **9.3 User Sends Chat Message**
+1. Sends `sendChatMessage` mutation.
 2. Backend:
    - Encrypts message.
    - Stores to PostgreSQL.
-   - Pushes via Kafka `message-sent`.
+   - Publishes via Kafka `chat-messages`.
+   - Delivered via dedicated per-user Sink.
 
-### **9.3 Subscriptions**
-- `receiveMessages`: returns new messages.
+### **9.4 Subscriptions**
+- `receiveMessages`: returns system messages.
 - `receiveUserList`: returns live user list.
 - `receiveBuzz`: UI should buzz the user device.
+- `receiveChatMessages`: returns direct messages.
 
 ---
 
@@ -231,6 +231,6 @@ type Subscription {
 ---
 
 ## **11. Conclusion**
-This revised architecture of the Social Module integrates **Kafka, Redis, and PostgreSQL** for high scalability and data integrity. It offers real-time communication and interaction within physical venues, forming the foundation for a richer **social layer in HappyGigs**.
+This architecture of the Social Module integrates **Kafka, Redis, and PostgreSQL** for high scalability and data integrity. It offers real-time communication and private interaction within physical venues, forming the foundation for a richer **social layer in HappyGigs**.
 
-🚀 Ready for secure, scalable, and social interactions!
+🚀 Ready for secure, scalable, and private social experiences!
