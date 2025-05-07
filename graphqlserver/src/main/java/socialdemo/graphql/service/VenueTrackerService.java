@@ -113,5 +113,7 @@ public class VenueTrackerService {
                 System.err.println(sinkType +": Unknown error: " + result);
         }
     }
+
+    // need redis and postgres db.
 }
 
