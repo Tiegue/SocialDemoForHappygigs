@@ -33,7 +33,7 @@ public class KafkaEventConsumer {
         venueTrackerService.userLeftVenue(userLeftEvent.getUserId(), userLeftEvent.getVenueId());
     }
 
-    @KafkaListener(topics = "chat-messages", groupId = "social-group")
+    @KafkaListener(topics = "chat-message", groupId = "social-group")
     public void handleChatMessage(String payload) {
         ChatMessageEvent chatMessageEvent = JsonUtils.fromJson(payload, ChatMessageEvent.class);
 

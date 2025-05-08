@@ -10,10 +10,13 @@ import socialdemo.graphql.event.UserLeftEvent;
 import static socialdemo.graphql.util.JsonUtils.toJson;
 
 @Service
-@RequiredArgsConstructor
 public class KafkaEventProducer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
+
+    public KafkaEventProducer(KafkaTemplate<String, String> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
 
     public void sendUserEntered(UserEnteredEvent event) {
         String payload = toJson(event);

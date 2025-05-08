@@ -24,7 +24,7 @@ public class KafkaTopicConfig {
 
     @Bean
     public NewTopic userMessageTopic() {
-        return TopicBuilder.name("user-message")
+        return TopicBuilder.name("chat-message")
                 .partitions(1)
                 .replicas(1)
                 .build();
