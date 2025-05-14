@@ -1,12 +1,10 @@
 package socialdemo.graphql.kafka;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import socialdemo.graphql.event.ChatMessageEvent;
 import socialdemo.graphql.event.UserEnteredEvent;
 import socialdemo.graphql.event.UserLeftEvent;
-import socialdemo.graphql.model.Message;
 import socialdemo.graphql.service.VenueTrackerService;
 import socialdemo.graphql.util.JsonUtils;
 
@@ -20,10 +18,10 @@ public class KafkaEventConsumer {
     }
 
     @KafkaListener(topics = "user-entered", groupId = "social-group")
-    public void handleUserEntered(String payload) {
+    public void handleUserEntered(UserEnteredEvent event) {
         UserEnteredEvent userEnteredEvent = JsonUtils.fromJson(payload, UserEnteredEvent.class);
 
-        venueTrackerService.userEnteredVenue(userEnteredEvent.getUserId(), userEnteredEvent.getVenueId());
+        venueTrackerService.userEnteredVenue(event);
     }
 
     @KafkaListener(topics = "user-left", groupId = "social-group")
