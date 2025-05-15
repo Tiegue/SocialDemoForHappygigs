@@ -3,7 +3,6 @@ package socialdemo.graphql.kafka;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import socialdemo.graphql.event.ChatMessageEvent;
 import socialdemo.graphql.event.UserEnteredEvent;
 import socialdemo.graphql.event.UserLeftEvent;
 
@@ -24,12 +23,8 @@ public class KafkaEventProducer {
     }
 
     public void sendUserLeft(UserLeftEvent event) {
-        String payload = toJson(event);
-        kafkaTemplate.send("user-left", payload);
+        //String payload = toJson(event);
+        kafkaTemplate.send("user-left", event);
     }
 
-    public void sendUserMessage(ChatMessageEvent event) {
-        String payload = toJson(event);
-        kafkaTemplate.send("chat-message", payload);
-    }
 }

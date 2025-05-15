@@ -1,37 +1,97 @@
 package socialdemo.graphql.service;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Sinks;
 import socialdemo.graphql.event.UserEnteredEvent;
 import socialdemo.graphql.event.UserLeftEvent;
+import socialdemo.graphql.kafka.KafkaEventProducer;
 import socialdemo.graphql.model.Message;
+import socialdemo.graphql.model.UserListPayload;
+import socialdemo.graphql.util.TimeUtils;
 
+import java.util.Set;
+
+@Service
 public class VenueTrackerService {
 
-    private final KafkaTemplate<String,Object> kafkaTemplate;
+    private final KafkaEventProducer kafkaEventProducer;
     private final StringRedisTemplate redisTemplate;
 
     private final Sinks.Many<Message> systemMessageSink = Sinks.many().multicast().onBackpressureBuffer();
+    private final Sinks.Many<UserListPayload> userListSink = Sinks.many().multicast().onBackpressureBuffer();
 
-    public VenueTrackerService(KafkaTemplate<String,Object> kafkaTemplate, StringRedisTemplate redisTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
+
+    public VenueTrackerService(KafkaEventProducer kafkaEventProducer, StringRedisTemplate redisTemplate) {
+        this.kafkaEventProducer = kafkaEventProducer;
         this.redisTemplate = redisTemplate;
     }
 
-    //=== GraphQL Mutatiion entrypoints ===
+    // ─────────────────────────────
+    // 1. GraphQL Invocation Path
+    // ─────────────────────────────
     public void userEnteredVenue(String userId, String venueId) {
         UserEnteredEvent event = new UserEnteredEvent(userId, venueId, System.currentTimeMillis());
-        kafkaTemplate.send("user-entered", event);
+        kafkaEventProducer.sendUserEntered(event);
         redisTemplate.opsForSet().add("venue:" + venueId, userId);
     }
 
-    public void userEnteredVenue(UserEnteredEvent event) {
-        redisTemplate.opsForSet().add("venue:" + event.venueId(), event.userId());
-        // Also store event to PostgreSQL as visit log
+    public void userLeftVenue(String userId, String venueId) {
+        UserLeftEvent event = new UserLeftEvent(userId, venueId, System.currentTimeMillis());
+        kafkaEventProducer.sendUserLeft(event);
+        redisTemplate.opsForSet().remove("venue:" + venueId, userId);
     }
 
-    public void userLeftVenue(String userId, String venueId) {
-        kafkaTemplate.send("user-left", new UserLeftEvent(userId, venueId));
+
+    // ─────────────────────────────
+    // 2. Kafka Event Handling Path
+    // ─────────────────────────────
+
+    public void applyUserEntered(UserEnteredEvent event) {
+        // Redis is already updated from mutation for immediate presence, but update again if idempotent
+        redisTemplate.opsForSet().add("venue:" + event.venueId(), event.userId());
+
+        // Broadcast to other users in this venue
+        Set<String> users = redisTemplate.opsForSet().members("venue:" + event.venueId());
+        if (users != null && !users.isEmpty()) {
+            for (String currentUser : users) {
+                if (!currentUser.equals(event.userId())) {
+                    Message msg = new Message(
+                            event.userId(),
+                            currentUser,
+                            "User " + event.userId() + " entered the venue " + event.venueId(),
+                            //String.valueOf(event.timestamp())
+                            TimeUtils.toIsoString(event.timestamp())
+                    );
+                    systemMessageSink.tryEmitNext(msg);
+                }
+            }
+
+        }
+
+        // Emit user list to new user
+        UserListPayload userListPayload = new UserListPayload(event.userId(), users);
+        userListSink.tryEmitNext(userListPayload);
     }
+
+    public void applyUserLeft(UserLeftEvent event) {
+        redisTemplate.opsForSet().remove("venue:" + event.venueId(), event.userId());
+
+    }
+
+    // ─────────────────────────────
+    // 3. GraphQL Subscriptions
+    // ─────────────────────────────
+
+    public Sinks.Many<Message> getSystemMessageSink() {
+        return systemMessageSink;
+    }
+
+    public Sinks.Many<UserListPayload> getUserListSink() {
+        return userListSink;
+    }
+
+
+
+
 }

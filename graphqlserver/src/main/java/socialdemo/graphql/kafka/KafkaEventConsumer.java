@@ -2,7 +2,6 @@ package socialdemo.graphql.kafka;
 
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import socialdemo.graphql.event.ChatMessageEvent;
 import socialdemo.graphql.event.UserEnteredEvent;
 import socialdemo.graphql.event.UserLeftEvent;
 import socialdemo.graphql.service.VenueTrackerService;
@@ -17,25 +16,24 @@ public class KafkaEventConsumer {
         this.venueTrackerService = venueTrackerService;
     }
 
-    @KafkaListener(topics = "user-entered", groupId = "social-group")
+    @KafkaListener(
+            topics = "user-entered",
+            groupId = "social-group",
+            containerFactory = "kafkaListenerContainerFactory")
     public void handleUserEntered(UserEnteredEvent event) {
-        UserEnteredEvent userEnteredEvent = JsonUtils.fromJson(payload, UserEnteredEvent.class);
+        //UserEnteredEvent userEnteredEvent = JsonUtils.fromJson(payload, UserEnteredEvent.class);
 
-        venueTrackerService.userEnteredVenue(event);
+        venueTrackerService.applyUserEntered(event);
     }
 
-    @KafkaListener(topics = "user-left", groupId = "social-group")
-    public void handleUserLeft(String payload) {
-        UserLeftEvent userLeftEvent = JsonUtils.fromJson(payload, UserLeftEvent.class);
+    @KafkaListener(topics = "user-left",
+            groupId = "social-group",
+            containerFactory = "kafkaListenerContainerFactory")
+    public void handleUserLeft(UserLeftEvent event) {
+        //UserLeftEvent userLeftEvent = JsonUtils.fromJson(payload, UserLeftEvent.class);
 
-        venueTrackerService.userLeftVenue(userLeftEvent.getUserId(), userLeftEvent.getVenueId());
+        venueTrackerService.applyUserLeft(event);
     }
 
-    @KafkaListener(topics = "chat-message", groupId = "social-group")
-    public void handleChatMessage(String payload) {
-        ChatMessageEvent chatMessageEvent = JsonUtils.fromJson(payload, ChatMessageEvent.class);
-
-        venueTrackerService.sendPrivateChat(chatMessageEvent);
-    }
 }
 
