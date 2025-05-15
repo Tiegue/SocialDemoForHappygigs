@@ -11,20 +11,20 @@ import static socialdemo.graphql.util.JsonUtils.toJson;
 @Service
 public class KafkaEventProducer {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public KafkaEventProducer(KafkaTemplate<String, Object> kafkaTemplate) {
+    public KafkaEventProducer(KafkaTemplate<String, String> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
     public void sendUserEntered(UserEnteredEvent event) {
-        //String payload = toJson(event);
-        kafkaTemplate.send("user-entered", event);
+        String payload = toJson(event);
+        kafkaTemplate.send("user-entered", event.venueId(), payload);
     }
 
     public void sendUserLeft(UserLeftEvent event) {
-        //String payload = toJson(event);
-        kafkaTemplate.send("user-left", event);
+        String payload = toJson(event);
+        kafkaTemplate.send("user-left", event.venueId(), payload);
     }
 
 }

@@ -82,7 +82,7 @@ GraphQL Mutation (sendChatMessage / userEnteredVenue)
         ↓
 VenueTrackerService (validates input, logic)
         ↓
-KafkaProducer + Redis (publishes events, updates presence)
+KafkaProducer + Redis (publishes events)
         ↓
 KafkaEventConsumer (reacts to events)
         ↓
@@ -105,12 +105,14 @@ public class UserVenueVisitingLog {
 ```
 
 ### **3.1 Message (System Message)**
+
 ```java
-public class Message {
-    private String sender;
-    private String receiver;
-    private String content;
-    private String timestamp;
+public record Message {
+  private String sender;
+  private String receiver;
+  private String content;
+  private String timestamp;
+  private socialdemo.graphql.model.Message type;
 }
 ```
 
@@ -133,17 +135,6 @@ public class VenuePresence {
 }
 ```
 
-### **3.4 ChatHistory**
-```java
-public class ChatHistory {
-    private UUID id;
-    private String sender;
-    private String receiver;
-    private String venueId;
-    private String encryptedMessage;
-    private long timestamp;
-}
-```
 
 ---
 
@@ -163,7 +154,6 @@ type Mutation {
 type Subscription {
   receiveUserList(userId: String!): [String]
   receiveMessages(userId: String!): Message
-  receiveChatMessages(userId: String!): ChatMessageEvent
   receiveBuzz(userId: String!): Boolean
 }
 ```
@@ -173,7 +163,6 @@ type Subscription {
 ## **5. Kafka Topics**
 - `user-entered`
 - `user-left`
-- `chat-messages`
 
 ---
 

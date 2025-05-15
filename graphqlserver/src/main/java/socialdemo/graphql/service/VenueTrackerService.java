@@ -7,6 +7,7 @@ import socialdemo.graphql.event.UserEnteredEvent;
 import socialdemo.graphql.event.UserLeftEvent;
 import socialdemo.graphql.kafka.KafkaEventProducer;
 import socialdemo.graphql.model.Message;
+import socialdemo.graphql.model.MessageType;
 import socialdemo.graphql.model.UserListPayload;
 import socialdemo.graphql.util.TimeUtils;
 
@@ -53,15 +54,15 @@ public class VenueTrackerService {
 
         // Broadcast to other users in this venue
         Set<String> users = redisTemplate.opsForSet().members("venue:" + event.venueId());
-        if (users != null && !users.isEmpty()) {
+        if (users != null && users.size() >1) {
             for (String currentUser : users) {
                 if (!currentUser.equals(event.userId())) {
                     Message msg = new Message(
                             event.userId(),
                             currentUser,
-                            "User " + event.userId() + " entered the venue " + event.venueId(),
-                            //String.valueOf(event.timestamp())
-                            TimeUtils.toIsoString(event.timestamp())
+                            "User: " + event.userId() + " entered the venue: " + event.venueId(),
+                            TimeUtils.toIsoString(event.timestamp()),
+                            MessageType.ENTERED
                     );
                     systemMessageSink.tryEmitNext(msg);
                 }
@@ -77,6 +78,23 @@ public class VenueTrackerService {
     public void applyUserLeft(UserLeftEvent event) {
         redisTemplate.opsForSet().remove("venue:" + event.venueId(), event.userId());
 
+        // Broadcast to other users in this venue
+        Set<String> users = redisTemplate.opsForSet().members("venue:" + event.venueId());
+        if (users != null && !users.isEmpty()) {
+            for (String currentUser : users) {
+                if (!currentUser.equals(event.userId())) {
+                    Message msg = new Message(
+                            event.userId(),
+                            currentUser,
+                            "User: " + event.userId() + " left the venue: " + event.venueId(),
+                            TimeUtils.toIsoString(event.timestamp()),
+                            MessageType.LEFT
+                    );
+                    systemMessageSink.tryEmitNext(msg);
+                }
+            }
+        }
+
     }
 
     // ─────────────────────────────
@@ -90,6 +108,7 @@ public class VenueTrackerService {
     public Sinks.Many<UserListPayload> getUserListSink() {
         return userListSink;
     }
+
 
     // For debug
     private void printSinkResult(String sinkType, Sinks.EmitResult result) {

@@ -3,6 +3,7 @@ type Message{
     receiver: String!
     content: String!
     timestamp: String!
+    type: String!
 }
 type Query{
     test:String
@@ -12,7 +13,7 @@ type Mutation {
     userEnteredVenue(userId: String!, venueId: String!): String
     userLeftVenue(userId: String!, venueId: String!): String
 
-    sendMessage(sender: String!, receiver: String!, content: String!): Message
+#    sendMessage(sender: String!, receiver: String!, content: String!): Message
 }
 
 

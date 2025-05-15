@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 import socialdemo.graphql.event.UserEnteredEvent;
 import socialdemo.graphql.event.UserLeftEvent;
+import socialdemo.graphql.util.JsonUtils;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -16,7 +17,7 @@ import static org.mockito.Mockito.verify;
 public class KafkaEventProducerTest {
 
     @Mock
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private KafkaTemplate<String, String> kafkaTemplate;
 
     private KafkaEventProducer kafkaEventProducer;
 
@@ -37,7 +38,7 @@ public class KafkaEventProducerTest {
         kafkaEventProducer.sendUserEntered(event);
 
         // Assert
-        verify(kafkaTemplate).send(eq("user-entered"), eq(event));
+        verify(kafkaTemplate).send(eq("user-entered"), eq(event.venueId()), eq(JsonUtils.toJson(event)));
     }
 
     @Test
@@ -52,6 +53,6 @@ public class KafkaEventProducerTest {
         kafkaEventProducer.sendUserLeft(event);
 
         // Assert
-        verify(kafkaTemplate).send(eq("user-left"), eq(event));
+        verify(kafkaTemplate).send(eq("user-left"), eq(event.venueId()), eq(JsonUtils.toJson(event)));
     }
 }

@@ -100,10 +100,10 @@ public class VenueTrackerServiceTest {
         Flux<Message> messageFlux = venueTrackerService.getSystemMessageSink().asFlux();
         StepVerifier.create(messageFlux.take(1))
                 .expectNextMatches(msg -> 
-                    msg.getSender().equals(userId) && 
-                    msg.getReceiver().equals("user2") &&
-                    msg.getContent().contains(userId) &&
-                    msg.getContent().contains(venueId))
+                    msg.sender().equals(userId) &&
+                    msg.receiver().equals("user2") &&
+                    msg.content().contains(userId) &&
+                    msg.content().contains(venueId))
                 .verifyComplete();
 
         // Test that the user list sink emits the expected payload

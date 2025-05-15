@@ -25,7 +25,7 @@ public class SocialSubscription {
         return venueTrackerService
                 .getSystemMessageSink()
                 .asFlux()
-                .filter(msg -> msg.getReceiver().equals(userId));
+                .filter(msg -> msg.receiver().equals(userId));
     }
 
     @SubscriptionMapping

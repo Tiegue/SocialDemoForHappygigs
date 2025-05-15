@@ -18,21 +18,19 @@ public class KafkaEventConsumer {
 
     @KafkaListener(
             topics = "user-entered",
-            groupId = "social-group",
-            containerFactory = "kafkaListenerContainerFactory")
-    public void handleUserEntered(UserEnteredEvent event) {
-        //UserEnteredEvent userEnteredEvent = JsonUtils.fromJson(payload, UserEnteredEvent.class);
+            groupId = "social-group")
+    public void handleUserEntered(String payload) {
+        UserEnteredEvent userEnteredEvent = JsonUtils.fromJson(payload, UserEnteredEvent.class);
 
-        venueTrackerService.applyUserEntered(event);
+        venueTrackerService.applyUserEntered(userEnteredEvent);
     }
 
     @KafkaListener(topics = "user-left",
-            groupId = "social-group",
-            containerFactory = "kafkaListenerContainerFactory")
-    public void handleUserLeft(UserLeftEvent event) {
-        //UserLeftEvent userLeftEvent = JsonUtils.fromJson(payload, UserLeftEvent.class);
+            groupId = "social-group")
+    public void handleUserLeft(String payload) {
+        UserLeftEvent userLeftEvent = JsonUtils.fromJson(payload, UserLeftEvent.class);
 
-        venueTrackerService.applyUserLeft(event);
+        venueTrackerService.applyUserLeft(userLeftEvent);
     }
 
 }

@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import socialdemo.graphql.event.UserEnteredEvent;
 import socialdemo.graphql.event.UserLeftEvent;
 import socialdemo.graphql.service.VenueTrackerService;
+import socialdemo.graphql.util.JsonUtils;
 
 import static org.mockito.Mockito.verify;
 
@@ -31,9 +32,10 @@ public class KafkaEventConsumerTest {
         String venueId = "venue1";
         long timestamp = System.currentTimeMillis();
         UserEnteredEvent event = new UserEnteredEvent(userId, venueId, timestamp);
+        String payload = JsonUtils.toJson(event);
 
         // Act
-        kafkaEventConsumer.handleUserEntered(event);
+        kafkaEventConsumer.handleUserEntered(payload);
 
         // Assert
         verify(venueTrackerService).applyUserEntered(event);
@@ -46,9 +48,10 @@ public class KafkaEventConsumerTest {
         String venueId = "venue1";
         long timestamp = System.currentTimeMillis();
         UserLeftEvent event = new UserLeftEvent(userId, venueId, timestamp);
+        String payload = JsonUtils.toJson(event);
 
         // Act
-        kafkaEventConsumer.handleUserLeft(event);
+        kafkaEventConsumer.handleUserLeft(payload);
 
         // Assert
         verify(venueTrackerService).applyUserLeft(event);
