@@ -19,3 +19,11 @@ services:
       - ALLOW_PLAINTEXT_LISTENER=yes
     volumes:
       - ./kafka-data:/bitnami/kafka            # ✅ Mounts to ./socialDemo/kafka-data
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis-data:/data

@@ -49,4 +49,10 @@ Setup subscription listeners in your Next.js frontend.
 Bonus Tip:
 If you need a sample docker-compose.yml to run Redis + Kafka + Postgres locally, I can generate that for you.
 
-Would you like that now?
+# logs
+## 15/05/2025
+  - Issue1: Deserialization error: Listener method expects a UserEnteredEvent, but Spring Kafka cannot convert the JSON to Java record.
+  - Solution: Use a custom JsonUtils class with a custom deserializer to convert JSON to UserEnteredEvent. 
+  - Issue2: Redis Connection RefusedError: Unable to connect to Redis server at 'redis://localhost:6379'
+  - Solution: Add a Redis container to your docker-compose.yml.
+- 

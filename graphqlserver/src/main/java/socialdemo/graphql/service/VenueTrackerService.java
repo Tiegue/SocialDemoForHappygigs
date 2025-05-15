@@ -91,6 +91,23 @@ public class VenueTrackerService {
         return userListSink;
     }
 
+    // For debug
+    private void printSinkResult(String sinkType, Sinks.EmitResult result) {
+        switch (result) {
+            case OK:
+                System.out.println(sinkType +": sent successfully!");
+                break;
+            case FAIL_OVERFLOW:
+                System.err.println(sinkType +": Backpressure buffer is full!");
+                break;
+            case FAIL_NON_SERIALIZED:
+                System.err.println(sinkType +": Concurrency issue detected!");
+                break;
+            default:
+                System.err.println(sinkType +": Unknown error: " + result);
+        }
+    }
+
 
 
 
