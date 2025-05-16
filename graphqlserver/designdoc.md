@@ -58,18 +58,13 @@ The **Social Module** in HappyGigs is an independent microservice that enables *
    - Deliver user lists and chat updates via GraphQL Subscriptions.
    - Buzz feature: send device-triggered alerts when a new user joins.
 
-- 💬 **Private chat system:**
-   - One-on-one encrypted messaging between users in the same venue.
-   - Chat history stored in PostgreSQL (`ChatHistory`).
-   - Direct message routing using per-user Sink mapping.
-
 - 🧠 **Reactive, scalable backend pipeline:**
    - GraphQL Mutation → VenueTrackerService → KafkaProducer + Redis
-   - KafkaEventConsumer → SocialSubscription → WebSocket Subscriptions
+   - KafkaEventConsumer → VenueTrackerService → SocialSubscription → WebSocket Subscriptions
 
 - 📦 **Optimized storage and transport:**
    - Redis for real-time presence and optional geospatial matching.
-   - PostgreSQL for persistent logs and chat history.
+   - PostgreSQL for persistent logs.
    - Kafka for event-based decoupling and scaling.
 
 ---
@@ -116,24 +111,6 @@ public record Message {
 }
 ```
 
-### **3.2 ChatMessageEvent (Private Chat Message)**
-```java
-public class ChatMessageEvent {
-    private String senderId;
-    private String receiverId;
-    private String venueId;
-    private String content;
-    private long timestamp;
-}
-```
-
-### **3.3 VenuePresence**
-```java
-public class VenuePresence {
-    private String venueId;
-    private Set<String> users;
-}
-```
 
 
 ---
@@ -173,7 +150,6 @@ type Subscription {
 ---
 
 ## **7. PostgreSQL Usage**
-- Stores encrypted chat messages per venue.
 - Persists user activity logs as `UserVenueVisitingLog` — essential for full visit traceability.
 - This includes all `user-entered` and `user-left` events, which are captured via Kafka and stored reliably for auditing and analytics.
 

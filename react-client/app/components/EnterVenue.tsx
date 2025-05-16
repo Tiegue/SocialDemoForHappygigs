@@ -22,6 +22,7 @@ const RECEIVE_MESSAGE = gql`
             receiver
             content
             timestamp
+            type
         }
     }
 `;

@@ -55,4 +55,19 @@ If you need a sample docker-compose.yml to run Redis + Kafka + Postgres locally,
   - Solution: Use a custom JsonUtils class with a custom deserializer to convert JSON to UserEnteredEvent. 
   - Issue2: Redis Connection RefusedError: Unable to connect to Redis server at 'redis://localhost:6379'
   - Solution: Add a Redis container to your docker-compose.yml.
-- 
+## 16/05/2025
+    - done: 
+        📥 Kafka message routing by venueId
+
+        📣 Real-time system messaging via GraphQL Subscriptions
+
+        🔁 Redis-backed presence tracking
+
+        🏷️ Structured MessageType enum for frontend filtering
+
+        🔄 Clean producer-consumer event flow with custom JSON serialization
+
+        📦 Implement PostgreSql with liquibase for history. I know that adding dependencies, liquibase xml files and properties, and then the database created.
+
+    - todo:
+        1. Implement PostgreSql for history  

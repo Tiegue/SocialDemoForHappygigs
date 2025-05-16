@@ -36,3 +36,5 @@ build/
 log.txt
 kafka-data
 graphqlserver/logs
+redis-data
+postgres-data
