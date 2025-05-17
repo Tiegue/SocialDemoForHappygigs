@@ -36,15 +36,15 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="3-user-location-event" author="tiegue">
-        <createTable tableName="user_location_event">
+    <changeSet id="3-user-visit-event" author="tiegue">
+        <createTable tableName="user_visit_log">
             <column name="id" type="UUID">
                 <constraints primaryKey="true"/>
             </column>
             <column name="user_id" type="UUID"/>
             <column name="venue_id" type="UUID"/>
-            <column name="event_type" type="VARCHAR(20)"/>
-            <column name="event_time" type="TIMESTAMP"/>
+            <column name="visit_type" type="VARCHAR(20)"/>
+            <column name="visit_time" type="TIMESTAMP"/>
             <column name="source" type="VARCHAR(50)"/>
         </createTable>
     </changeSet>
