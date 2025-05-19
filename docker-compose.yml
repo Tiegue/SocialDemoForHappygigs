@@ -17,16 +17,16 @@ services:
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
       - KAFKA_CFG_LOG_DIRS=/bitnami/kafka/data
       - ALLOW_PLAINTEXT_LISTENER=yes
-    volumes:
-      - ./kafka-data:/bitnami/kafka            # ✅ Mounts to ./socialDemo/kafka-data
+#    volumes:
+#      - ./kafka-data:/bitnami/kafka            # ✅ Mounts to ./socialDemo/kafka-data
 
   redis:
     image: redis
     container_name: redis
     ports:
       - "6379:6379"
-    volumes:
-      - ./redis-data:/data
+#    volumes:
+#      - ./redis-data:/data
 
   postgres:
     image: postgres:16.8

@@ -1,5 +1,5 @@
 package socialdemo.graphql.model;
 
-public enum MessageType {
+public enum VisitType {
     ENTERED, LEFT
 }

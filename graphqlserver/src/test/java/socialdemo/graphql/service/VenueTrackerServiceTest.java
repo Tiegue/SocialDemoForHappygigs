@@ -81,7 +81,7 @@ public class VenueTrackerServiceTest {
         // Arrange
         String userId = "user1";
         String venueId = "venue1";
-        UserEnteredEvent event = new UserEnteredEvent(userId, venueId, System.currentTimeMillis());
+        UserEnteredEvent event = UserEnteredEvent.create(userId, venueId, System.currentTimeMillis());
 
         Set<String> users = new HashSet<>();
         users.add(userId);
@@ -120,7 +120,7 @@ public class VenueTrackerServiceTest {
         // Arrange
         String userId = "user1";
         String venueId = "venue1";
-        UserLeftEvent event = new UserLeftEvent(userId, venueId, System.currentTimeMillis());
+        UserLeftEvent event = UserLeftEvent.create(userId, venueId, System.currentTimeMillis());
 
         // Act
         venueTrackerService.applyUserLeft(event);

@@ -71,3 +71,32 @@ If you need a sample docker-compose.yml to run Redis + Kafka + Postgres locally,
 
     - todo:
         1. Implement PostgreSql for history  
+## 19/05/2025
+    - done:
+        1. Implement PostgreSql for history
+        2. Add Liquibase to create the database
+        3. Add Liquibase changelog for creating the database
+        4. Confirm that frontend and backend are communicating correctly
+
+    - todo:
+        1. Operate on the database
+        2. Frontend add components
+## sprint meetings
+    - done:
+        1. Show the demo and explain the logic to John, get feedback:
+            - Amazing idea for redis to track users per venue;
+            - Improve a lot of my skills.
+        2. John show happygigs to me:
+            - Pretty good UI design;
+            - Admin functionality;
+        3. Discuss with John:
+            - How to deal with the proposals by customers;
+            - Fix several bugs: add button, duplicated record of venues while adding a same venue;
+    - todo:
+        1. Me: 
+            - finish postgres for history
+            - Add features to frontend
+            - Implement keycloak
+        2. John: 
+            - Fix bugs
+            - Add kafka to the project

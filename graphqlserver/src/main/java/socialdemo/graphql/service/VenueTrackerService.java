@@ -3,12 +3,15 @@ package socialdemo.graphql.service;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Sinks;
+import socialdemo.graphql.Mapper.VisitLogMapper;
+import socialdemo.graphql.entity.UserVisitLog;
 import socialdemo.graphql.event.UserEnteredEvent;
 import socialdemo.graphql.event.UserLeftEvent;
 import socialdemo.graphql.kafka.KafkaEventProducer;
 import socialdemo.graphql.model.Message;
-import socialdemo.graphql.model.MessageType;
+import socialdemo.graphql.model.VisitType;
 import socialdemo.graphql.model.UserListPayload;
+//import socialdemo.graphql.repository.UserVisitLogRepository;
 import socialdemo.graphql.util.TimeUtils;
 
 import java.util.Set;
@@ -21,24 +24,26 @@ public class VenueTrackerService {
 
     private final Sinks.Many<Message> systemMessageSink = Sinks.many().multicast().onBackpressureBuffer();
     private final Sinks.Many<UserListPayload> userListSink = Sinks.many().multicast().onBackpressureBuffer();
+//    private final UserVisitLogRepository userVisitLogRepository;
 
 
     public VenueTrackerService(KafkaEventProducer kafkaEventProducer, StringRedisTemplate redisTemplate) {
         this.kafkaEventProducer = kafkaEventProducer;
         this.redisTemplate = redisTemplate;
+//        this.userVisitLogRepository = userVisitLogRepository;
     }
 
     // ─────────────────────────────
     // 1. GraphQL Invocation Path
     // ─────────────────────────────
     public void userEnteredVenue(String userId, String venueId) {
-        UserEnteredEvent event = new UserEnteredEvent(userId, venueId, System.currentTimeMillis());
+        UserEnteredEvent event = UserEnteredEvent.create(userId, venueId, System.currentTimeMillis());
         kafkaEventProducer.sendUserEntered(event);
         redisTemplate.opsForSet().add("venue:" + venueId, userId);
     }
 
     public void userLeftVenue(String userId, String venueId) {
-        UserLeftEvent event = new UserLeftEvent(userId, venueId, System.currentTimeMillis());
+        UserLeftEvent event = UserLeftEvent.create(userId, venueId, System.currentTimeMillis());
         kafkaEventProducer.sendUserLeft(event);
         redisTemplate.opsForSet().remove("venue:" + venueId, userId);
     }
@@ -62,9 +67,11 @@ public class VenueTrackerService {
                             currentUser,
                             "User: " + event.userId() + " entered the venue: " + event.venueId(),
                             TimeUtils.toIsoString(event.timestamp()),
-                            MessageType.ENTERED
+                            VisitType.ENTERED
                     );
-                    systemMessageSink.tryEmitNext(msg);
+                    System.out.println("check message: " + msg.toString());
+                    Sinks.EmitResult result =systemMessageSink.tryEmitNext(msg);
+                    printSinkResult("systemMessageSink", result);
                 }
             }
 
@@ -73,6 +80,10 @@ public class VenueTrackerService {
         // Emit user list to new user
         UserListPayload userListPayload = new UserListPayload(event.userId(), users);
         userListSink.tryEmitNext(userListPayload);
+
+        //Persist to postgres
+//        UserVisitLog log = VisitLogMapper.toEntity(event);
+//        userVisitLogRepository.save(log);
     }
 
     public void applyUserLeft(UserLeftEvent event) {
@@ -88,9 +99,11 @@ public class VenueTrackerService {
                             currentUser,
                             "User: " + event.userId() + " left the venue: " + event.venueId(),
                             TimeUtils.toIsoString(event.timestamp()),
-                            MessageType.LEFT
+                            VisitType.LEFT
                     );
-                    systemMessageSink.tryEmitNext(msg);
+                    System.out.println("check message: " + msg.toString());
+                    Sinks.EmitResult result =systemMessageSink.tryEmitNext(msg);
+                    printSinkResult("systemMessageSink", result);
                 }
             }
         }

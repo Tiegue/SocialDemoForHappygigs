@@ -1,12 +1,23 @@
 package socialdemo.graphql.entity;
 
+import jakarta.persistence.*;
+
 import java.util.UUID;
 
+@Entity
+@Table(name = "venue_location")
 public class VenueLocation {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
     private UUID id;
+    @Column(name = "venue_id")
     private UUID venueId;
+    @Column(name = "latitude")
     private Double latitude;
+    @Column(name = "longitude")
     private Double longitude;
+    @Column(name = "radius_meters")
     private Integer radiusMeters;
 
     public VenueLocation(UUID id) {

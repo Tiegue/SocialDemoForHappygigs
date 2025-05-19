@@ -5,5 +5,5 @@ public record Message(
         String receiver,
         String content,
         String timestamp,
-        MessageType type
+        VisitType visitType
 ) {}

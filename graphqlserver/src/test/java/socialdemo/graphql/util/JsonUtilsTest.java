@@ -10,7 +10,7 @@ public class JsonUtilsTest {
     @Test
     void toJson_ShouldSerializeObjectToJsonString() {
         // Arrange
-        UserEnteredEvent event = new UserEnteredEvent("user1", "venue1", 1609459200000L);
+        UserEnteredEvent event = UserEnteredEvent.create("user1", "venue1", 1609459200000L);
 
         // Act
         String json = JsonUtils.toJson(event);
@@ -61,7 +61,7 @@ public class JsonUtilsTest {
     @Test
     void roundTrip_ShouldPreserveOriginalObject() {
         // Arrange
-        UserEnteredEvent originalEvent = new UserEnteredEvent("user1", "venue1", 1609459200000L);
+        UserEnteredEvent originalEvent = UserEnteredEvent.create("user1", "venue1", 1609459200000L);
 
         // Act
         String json = JsonUtils.toJson(originalEvent);

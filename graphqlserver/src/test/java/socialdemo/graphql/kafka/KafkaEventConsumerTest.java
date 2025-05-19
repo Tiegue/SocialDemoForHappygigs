@@ -31,7 +31,7 @@ public class KafkaEventConsumerTest {
         String userId = "user1";
         String venueId = "venue1";
         long timestamp = System.currentTimeMillis();
-        UserEnteredEvent event = new UserEnteredEvent(userId, venueId, timestamp);
+        UserEnteredEvent event = UserEnteredEvent.create(userId, venueId, timestamp);
         String payload = JsonUtils.toJson(event);
 
         // Act
@@ -47,7 +47,7 @@ public class KafkaEventConsumerTest {
         String userId = "user1";
         String venueId = "venue1";
         long timestamp = System.currentTimeMillis();
-        UserLeftEvent event = new UserLeftEvent(userId, venueId, timestamp);
+        UserLeftEvent event = UserLeftEvent.create(userId, venueId, timestamp);
         String payload = JsonUtils.toJson(event);
 
         // Act

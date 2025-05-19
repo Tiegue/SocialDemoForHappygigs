@@ -22,7 +22,7 @@ const RECEIVE_MESSAGE = gql`
             receiver
             content
             timestamp
-            type
+            visitType
         }
     }
 `;
@@ -59,7 +59,7 @@ export default function EnterVenue() {
     });
 
     const { data: messageData } = useSubscription(RECEIVE_MESSAGE, {
-        variables: {userId, venueId},
+        variables: {userId, venueId},//
         skip: !entered,
         onData: ({ data }) => {
             if (data?.data?.receiveMessages) {
@@ -72,14 +72,14 @@ export default function EnterVenue() {
         variables: {userId},
         skip: !entered,
     })
-    // console.log("🧾 messageData:", messageData);
-    // console.log("👥 userListData:", userListData);
+    console.log("🧾 messageData:", messageData);
+    console.log("👥 userListData:", userListData);
 
-    // const { data: messageDataTemp, error: messageError } = useSubscription(RECEIVE_MESSAGE, {
-    //     variables: {userId, venueId},
-    //     skip: !entered,
-    // });
-    // console.log("❌ messageError:", messageError);
+    const { data: messageDataTemp, error: messageError } = useSubscription(RECEIVE_MESSAGE, {
+        variables: {userId, venueId},
+        skip: !entered,
+    });
+    console.log("❌ messageError:", messageError);
 
 
     return (

@@ -10,7 +10,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 import socialdemo.graphql.model.Message;
-import socialdemo.graphql.model.MessageType;
+import socialdemo.graphql.model.VisitType;
 import socialdemo.graphql.model.UserListPayload;
 import socialdemo.graphql.service.VenueTrackerService;
 
@@ -43,8 +43,8 @@ public class SocialSubscriptionTest {
     void receiveMessages_ShouldFilterMessagesByUserId() {
         // Arrange
         String userId = "user1";
-        Message message1 = new Message("sender1", userId, "Hello user1", "2023-01-01T12:00:00Z", MessageType.ENTERED);
-        Message message2 = new Message("sender2", "user2", "Hello user2", "2023-01-01T12:00:00Z", MessageType.ENTERED);
+        Message message1 = new Message("sender1", userId, "Hello user1", "2023-01-01T12:00:00Z", VisitType.ENTERED);
+        Message message2 = new Message("sender2", "user2", "Hello user2", "2023-01-01T12:00:00Z", VisitType.ENTERED);
         
         Flux<Message> messageFlux = Flux.just(message1, message2);
         

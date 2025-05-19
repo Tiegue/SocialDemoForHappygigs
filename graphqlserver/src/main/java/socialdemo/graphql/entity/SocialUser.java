@@ -16,8 +16,11 @@ public class SocialUser {
     private UUID id;
     @Column(name = "username")
     private String username;
+    @Column(name = "email")
     private String email;
+    @Column(name = "last_seen")
     private Timestamp lastSeen;
+    @Column(name = "status")
     private String status;
 
     public SocialUser() {}

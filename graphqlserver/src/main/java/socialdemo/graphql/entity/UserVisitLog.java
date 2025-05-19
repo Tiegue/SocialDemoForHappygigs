@@ -3,6 +3,7 @@ package socialdemo.graphql.entity;
 import jakarta.persistence.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import socialdemo.graphql.model.VisitType;
 
 import java.util.UUID;
 import java.sql.Timestamp;
@@ -20,7 +21,7 @@ public class UserVisitLog {
     @Column(name = "venue_id")
     private UUID venueId;
     @Column(name = "visit_type")
-    private String visitType;
+    private VisitType visitType;
     @Column(name = "visit_time")
     private Timestamp visitTime;
     @Column(name = "source")
@@ -39,8 +40,8 @@ public class UserVisitLog {
     public void setUserId(UUID userId) { this.userId = userId; }
     public UUID getVenueId() { return venueId; }
     public void setVenueId(UUID venueId) { this.venueId = venueId; }
-    public String getVisitType() { return visitType; }
-    public void setVisitType(String visitType) { this.visitType = visitType; }
+    public VisitType getVisitType() { return visitType; }
+    public void setVisitType(VisitType visitType) { this.visitType = visitType; }
     public Timestamp getVisitTime() { return visitTime; }
     public void setVisitTime(Timestamp visitTime) { this.visitTime = visitTime; }
     public String getSource() { return source; }
