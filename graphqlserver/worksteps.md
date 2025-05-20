@@ -100,3 +100,13 @@ If you need a sample docker-compose.yml to run Redis + Kafka + Postgres locally,
         2. John: 
             - Fix bugs
             - Add kafka to the project
+## 22/05/2025
+    - done:
+        1. Finish postgres for history. Write to database correctly.
+            - Fix Id(UUID) generation, LET JPA generate it. ADD annotation @PrePersist to UserVisitLog entity.
+            - Add annotation @Enumerated(EnumType.STRING) to MessageType enum.
+        
+        2. Add org.slf4j.Logger replace System.out.println.
+        3. Frontend and backend are communicating correctly.
+    - todo:
+        1. Implement keycloak

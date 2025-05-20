@@ -13,14 +13,15 @@ public class UserVisitLog {
 
     private static final Logger LOG = LoggerFactory.getLogger(UserVisitLog.class);
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
+    @Column(name = "id", updatable = false, nullable = false)
+    @GeneratedValue
     private UUID id;
     @Column(name = "user_id")
-    private UUID userId;
+    private String userId;
     @Column(name = "venue_id")
-    private UUID venueId;
+    private String venueId;
     @Column(name = "visit_type")
+    @Enumerated(EnumType.STRING)
     private VisitType visitType;
     @Column(name = "visit_time")
     private Timestamp visitTime;
@@ -28,18 +29,19 @@ public class UserVisitLog {
     private String source;
 
     public UserVisitLog() {}
-    public UserVisitLog(UUID id) {
-        this.id = id;
-
+    @PrePersist
+    public void perPersist() {
+        if (this.id == null)
+            this.id = UUID.randomUUID();
     }
 
     // Getters and Setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
-    public UUID getUserId() { return userId; }
-    public void setUserId(UUID userId) { this.userId = userId; }
-    public UUID getVenueId() { return venueId; }
-    public void setVenueId(UUID venueId) { this.venueId = venueId; }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+    public String getVenueId() { return venueId; }
+    public void setVenueId(String venueId) { this.venueId = venueId; }
     public VisitType getVisitType() { return visitType; }
     public void setVisitType(VisitType visitType) { this.visitType = visitType; }
     public Timestamp getVisitTime() { return visitTime; }

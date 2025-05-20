@@ -11,9 +11,8 @@ import java.util.UUID;
 @Table(name = "social_user")
 public class SocialUser {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
-    private UUID id;
+    private String id;
     @Column(name = "username")
     private String username;
     @Column(name = "email")
@@ -24,16 +23,16 @@ public class SocialUser {
     private String status;
 
     public SocialUser() {}
-    public SocialUser(UUID id) {
+    public SocialUser(String id) {
         this.id = id;
     }
 
     // Getters and Setters
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
     }
 

@@ -1,5 +1,7 @@
 package socialdemo.graphql.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Sinks;
@@ -11,7 +13,7 @@ import socialdemo.graphql.kafka.KafkaEventProducer;
 import socialdemo.graphql.model.Message;
 import socialdemo.graphql.model.VisitType;
 import socialdemo.graphql.model.UserListPayload;
-//import socialdemo.graphql.repository.UserVisitLogRepository;
+import socialdemo.graphql.repository.UserVisitLogRepository;
 import socialdemo.graphql.util.TimeUtils;
 
 import java.util.Set;
@@ -19,18 +21,20 @@ import java.util.Set;
 @Service
 public class VenueTrackerService {
 
+    private static final Logger log = LoggerFactory.getLogger(VenueTrackerService.class);
+
     private final KafkaEventProducer kafkaEventProducer;
     private final StringRedisTemplate redisTemplate;
 
     private final Sinks.Many<Message> systemMessageSink = Sinks.many().multicast().onBackpressureBuffer();
     private final Sinks.Many<UserListPayload> userListSink = Sinks.many().multicast().onBackpressureBuffer();
-//    private final UserVisitLogRepository userVisitLogRepository;
+    private final UserVisitLogRepository userVisitLogRepository;
 
 
-    public VenueTrackerService(KafkaEventProducer kafkaEventProducer, StringRedisTemplate redisTemplate) {
+    public VenueTrackerService(KafkaEventProducer kafkaEventProducer, StringRedisTemplate redisTemplate, UserVisitLogRepository userVisitLogRepository) {
         this.kafkaEventProducer = kafkaEventProducer;
         this.redisTemplate = redisTemplate;
-//        this.userVisitLogRepository = userVisitLogRepository;
+        this.userVisitLogRepository = userVisitLogRepository;
     }
 
     // ─────────────────────────────
@@ -69,9 +73,9 @@ public class VenueTrackerService {
                             TimeUtils.toIsoString(event.timestamp()),
                             VisitType.ENTERED
                     );
-                    System.out.println("check message: " + msg.toString());
-                    Sinks.EmitResult result =systemMessageSink.tryEmitNext(msg);
-                    printSinkResult("systemMessageSink", result);
+                    log.debug("check message: {}", msg.toString());
+                    Sinks.EmitResult result = systemMessageSink.tryEmitNext(msg);
+                    logSinkResult("systemMessageSink", result);
                 }
             }
 
@@ -79,11 +83,13 @@ public class VenueTrackerService {
 
         // Emit user list to new user
         UserListPayload userListPayload = new UserListPayload(event.userId(), users);
-        userListSink.tryEmitNext(userListPayload);
+        log.debug("check userListPayload: {}", userListPayload.toString());
+        Sinks.EmitResult result = userListSink.tryEmitNext(userListPayload);
+        logSinkResult("userListSink", result);
 
         //Persist to postgres
-//        UserVisitLog log = VisitLogMapper.toEntity(event);
-//        userVisitLogRepository.save(log);
+        UserVisitLog vistlog = VisitLogMapper.toEntity(event);
+        userVisitLogRepository.save(vistlog);
     }
 
     public void applyUserLeft(UserLeftEvent event) {
@@ -101,12 +107,16 @@ public class VenueTrackerService {
                             TimeUtils.toIsoString(event.timestamp()),
                             VisitType.LEFT
                     );
-                    System.out.println("check message: " + msg.toString());
+                    log.debug("check message: {}", msg.toString());
                     Sinks.EmitResult result =systemMessageSink.tryEmitNext(msg);
-                    printSinkResult("systemMessageSink", result);
+                    logSinkResult("systemMessageSink", result);
                 }
             }
         }
+
+        //Persist to postgres
+        UserVisitLog vistlog = VisitLogMapper.toEntity(event);
+        userVisitLogRepository.save(vistlog);
 
     }
 
@@ -124,19 +134,19 @@ public class VenueTrackerService {
 
 
     // For debug
-    private void printSinkResult(String sinkType, Sinks.EmitResult result) {
+    private void logSinkResult(String sinkType, Sinks.EmitResult result) {
         switch (result) {
             case OK:
-                System.out.println(sinkType +": sent successfully!");
+                log.info("{}: sent successfully!", sinkType);
                 break;
             case FAIL_OVERFLOW:
-                System.err.println(sinkType +": Backpressure buffer is full!");
+                log.info("{}: Backpressure buffer is full!", sinkType);
                 break;
             case FAIL_NON_SERIALIZED:
-                System.err.println(sinkType +": Concurrency issue detected!");
+                log.info("{}: Sink is not serializable!", sinkType);
                 break;
             default:
-                System.err.println(sinkType +": Unknown error: " + result);
+                log.info("{}: Unknown error.", sinkType);
         }
     }
 

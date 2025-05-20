@@ -34,6 +34,7 @@ services:
     ports:
       - "5432:5432"
     environment:
+      - POSTGRES_DB=socialdemo
       - POSTGRES_USER=social
       - POSTGRES_PASSWORD=social
     volumes:

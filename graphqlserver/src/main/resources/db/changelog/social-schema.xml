@@ -8,7 +8,7 @@
 
     <changeSet id="1-social-user" author="tiegue">
         <createTable tableName="social_user">
-            <column name="id" type="UUID">
+            <column name="id" type="varchar(30)">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="username" type="VARCHAR(100)">
@@ -24,10 +24,10 @@
 
     <changeSet id="2-venue-location" author="tiegue">
         <createTable tableName="venue_location">
-            <column name="id" type="UUID">
+            <column name="id" type="varchar(30)">
                 <constraints primaryKey="true"/>
             </column>
-            <column name="venue_id" type="UUID">
+            <column name="venue_id" type="varchar(30)">
                 <constraints nullable="false"/>
             </column>
             <column name="latitude" type="DOUBLE PRECISION"/>
@@ -41,8 +41,8 @@
             <column name="id" type="UUID">
                 <constraints primaryKey="true"/>
             </column>
-            <column name="user_id" type="UUID"/>
-            <column name="venue_id" type="UUID"/>
+            <column name="user_id" type="varchar(30)"/>
+            <column name="venue_id" type="varchar(30)"/>
             <column name="visit_type" type="VARCHAR(20)"/>
             <column name="visit_time" type="TIMESTAMP"/>
             <column name="source" type="VARCHAR(50)"/>

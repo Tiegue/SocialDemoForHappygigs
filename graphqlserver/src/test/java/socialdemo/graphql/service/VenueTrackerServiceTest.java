@@ -15,6 +15,7 @@ import socialdemo.graphql.event.UserLeftEvent;
 import socialdemo.graphql.kafka.KafkaEventProducer;
 import socialdemo.graphql.model.Message;
 import socialdemo.graphql.model.UserListPayload;
+import socialdemo.graphql.repository.UserVisitLogRepository;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -42,10 +43,13 @@ public class VenueTrackerServiceTest {
 
     private VenueTrackerService venueTrackerService;
 
+    @Mock
+    private UserVisitLogRepository userVisitLogRepository;
+
     @BeforeEach
     void setUp() {
         lenient().when(redisTemplate.opsForSet()).thenReturn(setOperations);
-        venueTrackerService = new VenueTrackerService(kafkaEventProducer, redisTemplate);
+        venueTrackerService = new VenueTrackerService(kafkaEventProducer, redisTemplate, userVisitLogRepository);
     }
 
     @Test

@@ -8,11 +8,10 @@ import java.util.UUID;
 @Table(name = "venue_location")
 public class VenueLocation {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
-    private UUID id;
+    private String id;
     @Column(name = "venue_id")
-    private UUID venueId;
+    private String venueId;
     @Column(name = "latitude")
     private Double latitude;
     @Column(name = "longitude")
@@ -20,24 +19,24 @@ public class VenueLocation {
     @Column(name = "radius_meters")
     private Integer radiusMeters;
 
-    public VenueLocation(UUID id) {
+    public VenueLocation(String id) {
         this.id = id;
     }
 
     // Getters and Setters
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public UUID getVenueId() {
+    public String getVenueId() {
         return venueId;
     }
 
-    public void setVenueId(UUID venueId) {
+    public void setVenueId(String venueId) {
         this.venueId = venueId;
     }
 

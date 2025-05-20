@@ -11,20 +11,20 @@ public class VisitLogMapper  {
 
     public static UserVisitLog toEntity(UserEnteredEvent record) {
         UserVisitLog userVisitLog = new UserVisitLog();
-        userVisitLog.setId(UUID.randomUUID());
-        userVisitLog.setUserId(UUID.fromString(record.userId()));
-        userVisitLog.setVenueId(UUID.fromString(record.venueId()));
+        //userVisitLog.setId(UUID.randomUUID());
+        userVisitLog.setUserId(record.userId());
+        userVisitLog.setVenueId(record.venueId());
         userVisitLog.setVisitType(record.visitType());
         userVisitLog.setVisitTime(new Timestamp(record.timestamp()));
         userVisitLog.setSource("");
         return userVisitLog;
     }
 
-    public UserVisitLog toEntity(UserLeftEvent record) {
+    public static UserVisitLog toEntity(UserLeftEvent record) {
         UserVisitLog userVisitLog = new UserVisitLog();
-        userVisitLog.setId(UUID.randomUUID());
-        userVisitLog.setUserId(UUID.fromString(record.userId()));
-        userVisitLog.setVenueId(UUID.fromString(record.venueId()));
+        //userVisitLog.setId(UUID.randomUUID());
+        userVisitLog.setUserId(record.userId());
+        userVisitLog.setVenueId(record.venueId());
         userVisitLog.setVisitType(record.visitType());
         userVisitLog.setVisitTime(new Timestamp(record.timestamp()));
         userVisitLog.setSource("");
