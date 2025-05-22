@@ -37,7 +37,7 @@ jobs:
         ports:
           - 9092:9092
         env:
-          KAFKA_KRAFT_MODE: "yes"
+          KAFKA_KRAFT_MODE: "no"
 #          KAFKA_CFG_PROCESS_ROLES: "broker,controller"
 #          KAFKA_CFG_NODE_ID: "1"
 #          KAFKA_CFG_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
