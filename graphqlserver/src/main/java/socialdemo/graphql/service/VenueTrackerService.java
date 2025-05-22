@@ -133,7 +133,8 @@ public class VenueTrackerService {
     }
 
 
-    // For debug
+    // For debug;
+    //HINT: THE INFO LOGS SHOULD BE DISABLED IN PRODUCTION
     private void logSinkResult(String sinkType, Sinks.EmitResult result) {
         switch (result) {
             case OK:
