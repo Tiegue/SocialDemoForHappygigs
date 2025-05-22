@@ -28,12 +28,12 @@ jobs:
 
       #KRaft mode is not stable for Actions, so use zookeeper instead.
       zookeeper:
-        image: wurstmeister/zookeeper:3.4
+        image: zookeeper:latest
         ports:
           - 2181:2181
 
       kafka:
-        image: wurstmeister/kafka:2.13-2.8.0
+        image: bitnami/kafka:latest
         ports:
           - 9092:9092
         env:
