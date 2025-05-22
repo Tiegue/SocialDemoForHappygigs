@@ -100,7 +100,7 @@ If you need a sample docker-compose.yml to run Redis + Kafka + Postgres locally,
         2. John: 
             - Fix bugs
             - Add kafka to the project
-## 22/05/2025
+## 20/05/2025
     - done:
         1. Finish postgres for history. Write to database correctly.
             - Fix Id(UUID) generation, LET JPA generate it. ADD annotation @PrePersist to UserVisitLog entity.
@@ -110,3 +110,9 @@ If you need a sample docker-compose.yml to run Redis + Kafka + Postgres locally,
         3. Frontend and backend are communicating correctly.
     - todo:
         1. Implement keycloak
+## 21/05/2025
+    - done:
+        1. study keycloak
+        2. Study the playwrite. 
+    - todo:
+        1. Fix bugs
