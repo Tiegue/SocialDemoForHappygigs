@@ -117,3 +117,10 @@ If you need a sample docker-compose.yml to run Redis + Kafka + Postgres locally,
         3. know the contribute graph of github.( default branch is master, and branch thatmerged to it will be in the graph)
     - todo:
         1. Fix bugs
+## 22/05/2025
+    - done:
+        1. add action but still bugs at kafka, need to find a match version to use zookeeper, as kraftmode is not ok for Actions
+        2. learn playwrite. 
+        3. 
+    - todo:
+        1. Fix bugs
