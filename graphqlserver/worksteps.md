@@ -114,5 +114,6 @@ If you need a sample docker-compose.yml to run Redis + Kafka + Postgres locally,
     - done:
         1. study keycloak
         2. Study the playwrite. 
+        3. know the contribute graph of github.( default branch is master, and branch thatmerged to it will be in the graph)
     - todo:
         1. Fix bugs
