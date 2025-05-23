@@ -95,7 +95,7 @@ jobs:
             if pg_isready -h localhost -p 5432 -U social; then
               echo "✅ PostgreSQL is ready"
               break
-          fi
+            fi
             echo "    Attempt $i/20 - PostgreSQL is not ready yet, Retrying in 3 seconds..."
             sleep 3
           done
@@ -125,23 +125,24 @@ jobs:
           echo "✅ All services are ready"
 
       - name: Verify Database Connection
+        env:
+          POSTGRES_PASSWORD: "social"
         run: |
           echo "⏳ Verifying database connection..."
           psql -h localhost -U social -d socialdemo -c "SELECT version();"
-          env:
-            POSTGRES_PASSWORD: "social"
+
 
 
       - name: Run Tests with Maven
         env:
-          SPRNG_PROFILES_ACTIVE: "test"
+          SPRING_PROFILES_ACTIVE: "test"
           SPRING_DATASOURCE_URL: "jdbc:postgresql://localhost:5432/socialdemo"
           SPRING_DATASOURCE_USERNAME: "social"
           SPRING_DATASOURCE_PASSWORD: "social"
           SPRING_REDIS_HOST: "localhost"
           SPRING_REDIS_PORT: "6379"
           SPRING_KAFKA_BOOTSTRAP_SERVERS: "localhost:9092"
-        run:
+        run: |
           echo "⏳ Running tests with Maven..."
           mvn clean verify -B
 
@@ -150,7 +151,9 @@ jobs:
         if: ${{ failure() }}
         with:
           name: test-results
-          path: graphqlserver/target/failfire-reports/
+          path: |
+            graphqlserver/target/surefire-reports/
+            graphqlserver/target/failfire-reports/
           retention-days: 5
 
       - name: Upload Coverage Results
