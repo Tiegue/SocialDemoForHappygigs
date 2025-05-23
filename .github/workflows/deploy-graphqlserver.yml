@@ -124,11 +124,9 @@ jobs:
           echo "✅ All services are ready"
 
       - name: Verify Database Connection
-        env:
-          POSTGRES_PASSWORD: "social"
         run: |
           echo "⏳ Verifying database connection..."
-          psql -h localhost -U social -d socialdemo -c "SELECT version();"
+          POSTGRES_PASSWORD: "social" psql -h localhost -U social -d socialdemo -c "SELECT version();"
 
 
 
