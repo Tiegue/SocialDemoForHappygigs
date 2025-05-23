@@ -46,7 +46,7 @@ jobs:
           KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
           KAFKA_CFG_LOG_RETENTION_HOURS: "1"
           KAFKA_CFG_LOG_SEGMENT_BYTES: "1048576"
-        options: >-
+        options: |
 #          --health-cmd="kafka-topics.sh --bootstrap-server localhost:9092 --list"
           --health-cmd="timeout 10s bash -c '</dev/tcp/localhost/9092' && echo 'Kafka is responding'"
           --health-interval=10s
