@@ -126,7 +126,7 @@ jobs:
       - name: Verify Database Connection
         run: |
           echo "⏳ Verifying database connection..."
-          POSTGRES_PASSWORD: "social" psql -h localhost -U social -d socialdemo -c "SELECT version();"
+          PGPASSWORD=social psql -h localhost -U social -d socialdemo -c "SELECT version();"
 
 
 
