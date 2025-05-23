@@ -17,14 +17,15 @@ jobs:
         ports:
           - 5432:5432
         env:
-          POSTGRES_DB: socialdemo
-          POSTGRES_USER: social
-          POSTGRES_PASSWORD: social
+          POSTGRES_DB: "socialdemo"
+          POSTGRES_USER: "social"
+          POSTGRES_PASSWORD: "social"
         options: >-
-          --health-cmd="pg_isready"
+          --health-cmd="pg_isready -U social -d socialdemo"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+          --health-start-period=20s
 
       kafka:
         image: bitnami/kafka:latest
@@ -46,66 +47,23 @@ jobs:
           KAFKA_CFG_LOG_RETENTION_HOURS: "1"
           KAFKA_CFG_LOG_SEGMENT_BYTES: "1048576"
         options: >-
-          --health-cmd="kafka-topics.sh --bootstrap-server localhost:9092 --list"
+#          --health-cmd="kafka-topics.sh --bootstrap-server localhost:9092 --list"
+          --health-cmd="timeout 10s bash -c '</dev/tcp/localhost/9092' && echo 'Kafka is responding'"
           --health-interval=10s
           --health-timeout=10s
           --health-retries=10
           --health-start-period=30s
 
-#      #      This version in kraft mode backup
-#      kafka:
-#        image: bitnami/kafka:latest
-#        ports:
-#          - 9092:9092
-#        env:
-#          KAFKA_KRAFT_MODE: "yes"
-#          KAFKA_CFG_PROCESS_ROLES: "broker,controller"
-#          KAFKA_CFG_NODE_ID: "1"
-#          KAFKA_CFG_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-#          KAFKA_CFG_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093"
-#          KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
-#          KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
-#          KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
-#          KAFKA_CFG_LOG_DIRS: "/bitnami/kafka/data"
-#          ALLOW_PLAINTEXT_LISTENER: "yes"
-#        options: >-
-#          --health-cmd="curl --silent --fail localhost:9092 || exit 1"
-#          --health-interval=10s
-#          --health-timeout=5s
-#          --health-retries=10
-#      Kraft mode is not ok for Actions
-#      zookeeper:
-#        image: zookeeper:latest
-#        ports:
-#          - 2181:2181
-
-#      kafka:
-#        image: bitnami/kafka:latest
-#        ports:
-#          - 9092:9092
-#        env:
-#          KAFKA_KRAFT_MODE: "no"
-#          KAFKA_CFG_PROCESS_ROLES: "broker,controller"
-#          KAFKA_CFG_NODE_ID: "1"
-#          KAFKA_CFG_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-#          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-#          KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
-#          KAFKA_CFG_LISTENERS: PLAINTEXT://:9092
-#          KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-#          KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-#          KAFKA_BROKER_ID: 1
-#          ALLOW_PLAINTEXT_LISTENER: yes
-#        options: >-
-#          --health-cmd="bash -c 'echo > /dev/tcp/localhost/9092'"
-#          --health-interval=10s
-#          --health-timeout=5s
-#          --health-retries=10
-
       redis:
-        image: redis
+        image: redis:7-alpine
         ports:
           - 6379:6379
-        options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=5
+        options: >-
+          --health-cmd="redis-cli ping" 
+          --health-interval=10s 
+          --health-timeout=5s 
+          --health-retries=5
+          --health-start-period=20s
 
     defaults:
       run:
@@ -120,27 +78,85 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'maven'
+
+      - name: Install Required Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client redis-tools
 
       - name: Wait for Services
         run: |
+          echo "⏳ Waiting for services to be ready..."
+          
+          # Waiting for PostgreSQL
+          echo "⏳ Waiting for PostgreSQL..."
           for i in {1..20}; do
-            echo "⏳ Waiting for PostgreSQL..."; pg_isready -h localhost -p 5432 && break || sleep 3
+            if pg_isready -h localhost -p 5432 -U social; then
+              echo "✅ PostgreSQL is ready"
+              break
+          fi
+            echo "    Attempt $i/20 - PostgreSQL is not ready yet, Retrying in 3 seconds..."
+            sleep 3
           done
 
+          # Waiting for Kafka
+          echo "⏳ Waiting for Kafka..."
           for i in {1..20}; do
-            echo "⏳ Waiting for Kafka..."; timeout 3 bash -c "echo > /dev/tcp/localhost/9092" && break || sleep 3
+            if timeout 3 bash -c "echo > /dev/tcp/localhost/9092" >/dev/null; then
+              echo "✅ Kafka is ready"; 
+              break
+            fi
+            echo "    Attempt $i/20 - Kafka is not ready yet, Retrying in 3 seconds..."
+            sleep 3
           done
 
+          # Waiting for Redis
+          echo "⏳ Waiting for Redis..."
           for i in {1..20}; do
-            echo "⏳ Waiting for Redis..."; redis-cli -h localhost ping && break || sleep 3
+            if redis-cli -h localhost -p 6379 ping >/dev/null 2>&1; then
+              echo "✅ Redis is ready"
+              break
+            fi
+            echo "    Attempt $i/20 - Redis is not ready yet, Retrying in 3 seconds..."
+            sleep 3
           done
+
+          echo "✅ All services are ready"
+
+      - name: Verify Database Connection
+        run: |
+          echo "⏳ Verifying database connection..."
+          psql -h localhost -U social -d socialdemo -c "SELECT version();"
+          env:
+            POSTGRES_PASSWORD: "social"
+
 
       - name: Run Tests with Maven
         env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/socialdemo
-          SPRING_DATASOURCE_USERNAME: social
-          SPRING_DATASOURCE_PASSWORD: social
-          SPRING_REDIS_HOST: localhost
-          SPRING_KAFKA_BOOTSTRAP_SERVERS: localhost:9092
-        run: mvn clean verify
-#
+          SPRNG_PROFILES_ACTIVE: "test"
+          SPRING_DATASOURCE_URL: "jdbc:postgresql://localhost:5432/socialdemo"
+          SPRING_DATASOURCE_USERNAME: "social"
+          SPRING_DATASOURCE_PASSWORD: "social"
+          SPRING_REDIS_HOST: "localhost"
+          SPRING_REDIS_PORT: "6379"
+          SPRING_KAFKA_BOOTSTRAP_SERVERS: "localhost:9092"
+        run:
+          echo "⏳ Running tests with Maven..."
+          mvn clean verify -B
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: test-results
+          path: graphqlserver/target/failfire-reports/
+          retention-days: 5
+
+      - name: Upload Coverage Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-results
+          path: graphqlserver/target/site/jacoco/
+          retention-days: 5

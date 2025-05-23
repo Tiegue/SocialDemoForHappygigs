@@ -124,3 +124,12 @@ If you need a sample docker-compose.yml to run Redis + Kafka + Postgres locally,
         3. 
     - todo:
         1. Fix bugs
+## 23/05/2025
+    - done:
+        1. backen CI done:
+            - use binary protocol replace http protocol. KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093" to "1@localhost:9093"
+            - Action does support kraft mode, yes.
+            - polish it and make it clear, clean and stable
+    - todo:
+        1. add keycloak to the project
+        2. fix bugs
