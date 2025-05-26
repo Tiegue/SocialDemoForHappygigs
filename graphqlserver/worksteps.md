@@ -130,6 +130,13 @@ If you need a sample docker-compose.yml to run Redis + Kafka + Postgres locally,
             - use binary protocol replace http protocol. KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093" to "1@localhost:9093"
             - Action does support kraft mode, yes.
             - polish it and make it clear, clean and stable
+        2. frontend CI done:
+            - polish it and make it clear, clean and stable
+        3. Configure playwright, and create a demo test, and run it.
+    - achieved:
+        1. make sense Action and yml file structure.
+        2. make sense kafka config.
+        3. make sense playwright.
     - todo:
-        1. add keycloak to the project
-        2. fix bugs
+        1. Add real playwright tests for frontend.
+        2. learn playwrite.
