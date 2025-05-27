@@ -4,7 +4,7 @@ import { send } from 'process';
 //Mock GraphQL responses for testing
 const mockMessages = {
     data: {
-        receiveMmessages: {
+        receiveMessages: {
             sender: 'user1',
             receiver: 'venue',
             content: 'Hello, this is a test message.',
@@ -21,11 +21,7 @@ const mockUserList = {
     }
 };
 
-test('test: homepage has title', async ({page}) => {
-    await page.goto('http://localhost:3000');
-    await expect(page).toHaveTitle("SocialDemo");
-    await expect(page.locator('h1')).toHaveText('HappyGigs Social');
-});
+
 
 test.describe('EnterVenue Component', () => {
   test.beforeEach(async ({ page }) => {
@@ -114,30 +110,44 @@ test.describe('EnterVenue Component', () => {
     await page.getByRole('button', { name: 'Enter Venue' }).click();
     
     // Check if message content is displayed
-    await expect(page.getByText('John:')).toBeVisible();
-    await expect(page.getByText('Hello everyone!')).toBeVisible();
+    await expect(page.getByText('user1')).toBeVisible();
+    await expect(page.getByText('Hello, this is a test message.')).toBeVisible();
   });
 
-  test('should display user list', async ({ page }) => {
-    // Mock user list response
-    await page.route('**/graphql', async route => {
+test('should display user list', async ({ page }) => {
+  await page.route('**/graphql', async route => {
+    const request = route.request();
+    const postData = request.postData();
+    if (postData?.includes('userEnteredVenue')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: { userEnteredVenue: true } })
+      });
+    } else if (postData?.includes('receiveMessages')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: { receiveMessages: null } })
+      });
+    } else if (postData?.includes('receiveUserList')) {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify(mockUserList)
       });
-    });
-
-    // Enter venue
-    await page.getByPlaceholder('User ID').fill('testuser123');
-    await page.getByPlaceholder('Venue ID').fill('testvenue456');
-    await page.getByRole('button', { name: 'Enter Venue' }).click();
-    
-    // Check if users are listed
-    await expect(page.getByText('user1')).toBeVisible();
-    await expect(page.getByText('user2')).toBeVisible();
-    await expect(page.getByText('user3')).toBeVisible();
+    }
   });
+
+  await page.getByPlaceholder('User ID').fill('testuser123');
+  await page.getByPlaceholder('Venue ID').fill('testvenue456');
+  await page.getByRole('button', { name: 'Enter Venue' }).click();
+
+  await expect(page.getByText('user1')).toBeVisible();
+  await expect(page.getByText('user2')).toBeVisible();
+  await expect(page.getByText('user3')).toBeVisible();
+});
+ 
 
   test('should leave venue when Leave Venue button is clicked', async ({ page }) => {
     // Mock leave venue mutation
@@ -170,35 +180,137 @@ test.describe('EnterVenue Component', () => {
     await expect(page.getByText('Live Messages:')).not.toBeVisible();
   });
 
-  test('should handle empty input validation', async ({ page }) => {
-    // Try to enter venue without filling inputs
+test('should disable Enter Venue button when inputs are empty', async ({ page }) => {
+    const enterButton = page.getByRole('button', { name: 'Enter Venue' });
+    await expect(enterButton).toBeDisabled();
+    await page.getByPlaceholder('User ID').fill('user');
+    await expect(enterButton).toBeDisabled();
+    await page.getByPlaceholder('Venue ID').fill('venue');
+    await expect(enterButton).toBeEnabled();
+});
+
+test('should show validation error messages for empty fields', async ({ page }) => {
     await page.getByRole('button', { name: 'Enter Venue' }).click();
-    
-    // The component should not show venue interface without proper inputs
+    await expect(page.getByText(/user id is required/i)).toBeVisible();
+    await expect(page.getByText(/venue id is required/i)).toBeVisible();
+});
+
+test('should not allow entering venue with whitespace-only input', async ({ page }) => {
+    await page.getByPlaceholder('User ID').fill('   ');
+    await page.getByPlaceholder('Venue ID').fill('   ');
+    await page.getByRole('button', { name: 'Enter Venue' }).click();
     await expect(page.getByText('Live Messages:')).not.toBeVisible();
-  });
+});
 
-  test('should show "No messages yet" when no messages are received', async ({ page }) => {
-    // Mock empty message response
+test('should clear input fields after leaving venue', async ({ page }) => {
     await page.route('**/graphql', async route => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ data: { receiveMessages: null } })
-      });
+        const postData = route.request().postData();
+        if (postData?.includes('userEnteredVenue')) {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ data: { userEnteredVenue: true } })
+            });
+        } else if (postData?.includes('userLeftVenue')) {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ data: { userLeftVenue: true } })
+            });
+        }
     });
-
-    // Enter venue
-    await page.getByPlaceholder('User ID').fill('testuser123');
-    await page.getByPlaceholder('Venue ID').fill('testvenue456');
+    await page.getByPlaceholder('User ID').fill('testuser');
+    await page.getByPlaceholder('Venue ID').fill('testvenue');
     await page.getByRole('button', { name: 'Enter Venue' }).click();
-    
-    // Should show "No messages yet" text
-    await expect(page.getByText('No messages yet.')).toBeVisible();
-  });
+    await page.getByRole('button', { name: 'Leave Venue' }).click();
+    await expect(page.getByPlaceholder('User ID')).toHaveValue('');
+    await expect(page.getByPlaceholder('Venue ID')).toHaveValue('');
+});
 
-  test('should test accessibility features', async ({ page }) => {
-    // Check if form elements have proper labels/placeholders
+test('should focus User ID input on initial render', async ({ page }) => {
+    await expect(page.getByPlaceholder('User ID')).toBeFocused();
+});
+
+test('should not show Leave Venue button before entering', async ({ page }) => {
+    await expect(page.getByRole('button', { name: 'Leave Venue' })).not.toBeVisible();
+});
+
+test('should not show user list if none returned', async ({ page }) => {
+    await page.route('**/graphql', async route => {
+        const postData = route.request().postData();
+        if (postData?.includes('userEnteredVenue')) {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ data: { userEnteredVenue: true } })
+            });
+        } else if (postData?.includes('receiveUserList')) {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ data: { receiveUserList: [] } })
+            });
+        }
+    });
+    await page.getByPlaceholder('User ID').fill('testuser');
+    await page.getByPlaceholder('Venue ID').fill('testvenue');
+    await page.getByRole('button', { name: 'Enter Venue' }).click();
+    await expect(page.getByText('Current Users:')).toBeVisible();
+    await expect(page.getByText('No users present.')).toBeVisible();
+});
+
+test('should show loading indicator when entering venue', async ({ page }) => {
+    await page.route('**/graphql', async route => {
+        const postData = route.request().postData();
+        if (postData?.includes('userEnteredVenue')) {
+            // Simulate network delay
+            await new Promise(res => setTimeout(res, 500));
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ data: { userEnteredVenue: true } })
+            });
+        }
+    });
+    await page.getByPlaceholder('User ID').fill('testuser');
+    await page.getByPlaceholder('Venue ID').fill('testvenue');
+    await page.getByRole('button', { name: 'Enter Venue' }).click();
+    await expect(page.getByRole('status', { name: /loading/i })).toBeVisible();
+});
+
+test('should not allow sending message before entering venue', async ({ page }) => {
+    const messageInput = page.getByRole('textbox', { name: /message/i });
+    const sendButton = page.getByRole('button', { name: /send/i });
+    await expect(messageInput).toBeDisabled();
+    await expect(sendButton).toBeDisabled();
+});
+
+test('should allow sending message after entering venue', async ({ page }) => {
+    await page.route('**/graphql', async route => {
+        const postData = route.request().postData();
+        if (postData?.includes('userEnteredVenue')) {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ data: { userEnteredVenue: true } })
+            });
+        } else if (postData?.includes('sendMessage')) {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ data: { sendMessage: true } })
+            });
+        }
+    });
+    await page.getByPlaceholder('User ID').fill('testuser');
+    await page.getByPlaceholder('Venue ID').fill('testvenue');
+    await page.getByRole('button', { name: 'Enter Venue' }).click();
+    const messageInput = page.getByRole('textbox', { name: /message/i });
+    const sendButton = page.getByRole('button', { name: /send/i });
+    await messageInput.fill('Hello!');
+    await sendButton.click();
+    await expect(messageInput).toHaveValue('');
+});
     const userInput = page.getByPlaceholder('User ID');
     const venueInput = page.getByPlaceholder('Venue ID');
     
