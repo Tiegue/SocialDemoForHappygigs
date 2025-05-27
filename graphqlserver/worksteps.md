@@ -140,3 +140,21 @@ If you need a sample docker-compose.yml to run Redis + Kafka + Postgres locally,
     - todo:
         1. Add real playwright tests for frontend.
         2. learn playwrite.
+## 26/05/2025
+    - done:
+        1. Add real playwright tests for frontend.
+        2. learn playwrite.
+    - todo:
+        1. learn playwrite.
+        2. learn keycloak.
+        3. config checky with playwright.
+## 27/05/2025
+    - done:
+        1. use copilot to generate playwrite tests
+        2. use vscode to generate playwrite tests. 
+            - codegen in code: record new,.
+        3. config checky with playwright.
+    - todo:
+        1. learn playwrite.
+        2. learn keycloak.
+        3. config checky with playwright.

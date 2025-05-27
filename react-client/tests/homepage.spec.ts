@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 
-test('homepage has title', async ({page}) => {
+test('text: homepage has title', async ({page}) => {
     await page.goto('http://localhost:3000');
-    await expect(page).toHaveTitle("Create Next App");
+    await expect(page).toHaveTitle("SocialDemo");
 })
 
