@@ -311,22 +311,6 @@ test('should allow sending message after entering venue', async ({ page }) => {
     await sendButton.click();
     await expect(messageInput).toHaveValue('');
 });
-    const userInput = page.getByPlaceholder('User ID');
-    const venueInput = page.getByPlaceholder('Venue ID');
-    
-    await expect(userInput).toBeVisible();
-    await expect(venueInput).toBeVisible();
-    
-    // Test keyboard navigation
-    await userInput.focus();
-    await expect(userInput).toBeFocused();
-    
-    await page.keyboard.press('Tab');
-    await expect(venueInput).toBeFocused();
-    
-    await page.keyboard.press('Tab');
-    await expect(page.getByRole('button', { name: 'Enter Venue' })).toBeFocused();
-  });
 
   test('should handle network errors gracefully', async ({ page }) => {
     // Mock network error
