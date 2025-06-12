@@ -104,6 +104,24 @@
 			<artifactId>hibernate-validator-annotation-processor</artifactId>
 		</dependency>
 
+		<!-- Spring Boot Starter for Security -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<!-- Keycloak Adapter -->
+		<dependency>
+			<groupId>org.keycloak</groupId>
+			<artifactId>keycloak-spring-boot-starter</artifactId>
+<!--			<version>24.0.5</version>-->
+		</dependency>
+
+		<!-- Spring Security WebFlux -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<build>
