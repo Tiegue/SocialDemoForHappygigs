@@ -2,6 +2,7 @@
 
 import {gql, useMutation, useSubscription } from "@apollo/client";
 import {useEffect, useState} from "react";
+import { useAuth } from "../context/AuthContext";
 
 const ENTER_VENUE = gql`
     mutation EnterVenue($userId: String!, $venueId: String!) {
@@ -33,6 +34,12 @@ const RECEIVE_USER_LIST = gql`
 `;
 
 export default function EnterVenue() {
+    const { username, roles, logout } = useAuth();
+
+    if (!roles.includes("user")) {
+        return <p>Access Denied. You need the "user" role.</p>;
+    }
+
     const [userId, setUserId] = useState("");
     const [venueId, setVenueId] = useState("");
     const [entered, setEntered] = useState(false);

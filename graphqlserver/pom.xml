@@ -109,12 +109,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
-		<!-- Keycloak Adapter -->
-		<dependency>
-			<groupId>org.keycloak</groupId>
-			<artifactId>keycloak-spring-boot-starter</artifactId>
-			<version>24.0.5</version>
-		</dependency>
+<!--		&lt;!&ndash; Keycloak Adapter &ndash;&gt;-->
+<!--		<dependency>-->
+<!--			<groupId>org.keycloak</groupId>-->
+<!--			<artifactId>keycloak-spring-boot-starter</artifactId>-->
+<!--			<version>24.0.5</version>-->
+<!--		</dependency>-->
 
 		<!-- Spring Security WebFlux -->
 		<dependency>
