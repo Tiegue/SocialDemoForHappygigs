@@ -23,15 +23,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [token, setToken] = useState<string | null>(null);
     const [username, setUsername] = useState<string | null>(null);
     const [roles, setRoles] = useState<string[]>([]);
+    // const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        keycloak.init({onLoad: "login-required"}).then((authenticated) => {
+        //setLoading(true);
+        keycloak.init({
+            onLoad: "check-sso",//login-required
+            // redirectUri: "http://localhost:3000/entervenue",
+        }).then((authenticated) => {
             if (authenticated) {
+                const token = keycloak.token ?? null;
+                const parsed = keycloak.tokenParsed;
+
+                console.log("🔐 Token parsed:", parsed);
+                console.log("🔐 Roles:", parsed?.realm_access?.roles);
+
                 setToken(keycloak.token ?? null);
                 setUsername(keycloak.tokenParsed?.preferred_username ?? null);
                 setRoles(keycloak.realmAccess?.roles ?? []);
             }
         });
+
 
         keycloak.onTokenExpired = () => {
             keycloak.updateToken(60).then((refreshed) => {
