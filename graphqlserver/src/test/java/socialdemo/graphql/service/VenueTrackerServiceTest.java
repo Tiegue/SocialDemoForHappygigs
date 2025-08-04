@@ -12,6 +12,7 @@ import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 import socialdemo.graphql.event.UserEnteredEvent;
 import socialdemo.graphql.event.UserLeftEvent;
+import socialdemo.graphql.healthcheck.MetricsService;
 import socialdemo.graphql.kafka.KafkaEventProducer;
 import socialdemo.graphql.model.Message;
 import socialdemo.graphql.model.UserListPayload;
@@ -46,10 +47,13 @@ public class VenueTrackerServiceTest {
     @Mock
     private UserVisitLogRepository userVisitLogRepository;
 
+    @Mock
+    private MetricsService metricsService;
+
     @BeforeEach
     void setUp() {
         lenient().when(redisTemplate.opsForSet()).thenReturn(setOperations);
-        venueTrackerService = new VenueTrackerService(kafkaEventProducer, redisTemplate, userVisitLogRepository);
+        venueTrackerService = new VenueTrackerService(kafkaEventProducer, redisTemplate, userVisitLogRepository, metricsService);
     }
 
     @Test

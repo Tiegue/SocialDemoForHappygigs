@@ -133,3 +133,8 @@ If you need a sample docker-compose.yml to run Redis + Kafka + Postgres locally,
     - todo:
         1. add keycloak to the project
         2. fix bugs
+
+## 5/8/2025
+ - add circuit breaker to service. anotation error
+ - add health check and metrics 
+ 

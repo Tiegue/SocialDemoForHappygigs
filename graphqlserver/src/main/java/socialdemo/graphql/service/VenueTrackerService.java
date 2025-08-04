@@ -1,8 +1,11 @@
 package socialdemo.graphql.service;
 
+import socialdemo.graphql.healthcheck.MetricsService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.retry.annotation.CircuitBreaker;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Sinks;
 import socialdemo.graphql.Mapper.VisitLogMapper;
@@ -16,12 +19,15 @@ import socialdemo.graphql.model.UserListPayload;
 import socialdemo.graphql.repository.UserVisitLogRepository;
 import socialdemo.graphql.util.TimeUtils;
 
+import java.util.Collections;
 import java.util.Set;
 
 @Service
 public class VenueTrackerService {
 
     private static final Logger log = LoggerFactory.getLogger(VenueTrackerService.class);
+
+    private final MetricsService metricsService;
 
     private final KafkaEventProducer kafkaEventProducer;
     private final StringRedisTemplate redisTemplate;
@@ -31,10 +37,14 @@ public class VenueTrackerService {
     private final UserVisitLogRepository userVisitLogRepository;
 
 
-    public VenueTrackerService(KafkaEventProducer kafkaEventProducer, StringRedisTemplate redisTemplate, UserVisitLogRepository userVisitLogRepository) {
+    public VenueTrackerService(KafkaEventProducer kafkaEventProducer,
+                               StringRedisTemplate redisTemplate,
+                               UserVisitLogRepository userVisitLogRepository,
+                               MetricsService metricsService) {
         this.kafkaEventProducer = kafkaEventProducer;
         this.redisTemplate = redisTemplate;
         this.userVisitLogRepository = userVisitLogRepository;
+        this.metricsService = metricsService;
     }
 
     // ─────────────────────────────
@@ -44,6 +54,10 @@ public class VenueTrackerService {
         UserEnteredEvent event = UserEnteredEvent.create(userId, venueId, System.currentTimeMillis());
         kafkaEventProducer.sendUserEntered(event);
         redisTemplate.opsForSet().add("venue:" + venueId, userId);
+
+
+        // 👇 Record the metric
+        metricsService.recordUserEntered(venueId);
     }
 
     public void userLeftVenue(String userId, String venueId) {
@@ -133,6 +147,15 @@ public class VenueTrackerService {
     }
 
 
+//    @CircuitBreaker(name = "redis", fallbackMethod = "fallbackGetVenueUsers")
+//    public Set<String> getVenueUsers(String venueId) {
+//        return redisTemplate.opsForSet().members("venue:" + venueId);
+//    }
+//
+//    public Set<String> fallbackGetVenueUsers(String venueId, Exception ex) {
+//        log.warn("Redis unavailable, using fallback for venues: {}", venueId, ex);
+//        return Collections.emptySet();
+//    }
     // For debug;
     //HINT: THE INFO LOGS SHOULD BE DISABLED IN PRODUCTION
     private void logSinkResult(String sinkType, Sinks.EmitResult result) {
