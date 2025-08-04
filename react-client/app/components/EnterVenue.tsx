@@ -37,7 +37,7 @@ export default function EnterVenue() {
     const [venueId, setVenueId] = useState("");
     const [entered, setEntered] = useState(false);
 
-    // Delay Mutation Trigger
+    // // Delay Mutation Trigger
     useEffect(() => {
         if (entered && userId && venueId) {
             const timeout = setTimeout(() => {

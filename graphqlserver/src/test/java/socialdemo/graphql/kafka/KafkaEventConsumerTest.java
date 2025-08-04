@@ -35,7 +35,7 @@ public class KafkaEventConsumerTest {
         String payload = JsonUtils.toJson(event);
 
         // Act
-        kafkaEventConsumer.handleUserEntered(payload);
+        kafkaEventConsumer.handleUserEntered(payload, null);
 
         // Assert
         verify(venueTrackerService).applyUserEntered(event);

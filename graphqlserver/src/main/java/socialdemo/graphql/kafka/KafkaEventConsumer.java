@@ -1,6 +1,9 @@
 package socialdemo.graphql.kafka;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 import socialdemo.graphql.event.UserEnteredEvent;
 import socialdemo.graphql.event.UserLeftEvent;
@@ -9,6 +12,8 @@ import socialdemo.graphql.util.JsonUtils;
 
 @Component
 public class KafkaEventConsumer {
+
+    private static final Logger log = LoggerFactory.getLogger(KafkaEventConsumer.class);
 
     private final VenueTrackerService venueTrackerService;
 
@@ -19,10 +24,17 @@ public class KafkaEventConsumer {
     @KafkaListener(
             topics = "user-entered",
             groupId = "social-group")
-    public void handleUserEntered(String payload) {
-        UserEnteredEvent userEnteredEvent = JsonUtils.fromJson(payload, UserEnteredEvent.class);
+    public void handleUserEntered(String payload, Acknowledgment ack) {//
+        try {
+            UserEnteredEvent userEnteredEvent = JsonUtils.fromJson(payload, UserEnteredEvent.class);
 
-        venueTrackerService.applyUserEntered(userEnteredEvent);
+            venueTrackerService.applyUserEntered(userEnteredEvent);
+
+            ack.acknowledge();
+        } catch (Exception e) {
+            log.error("Error processing user entered event: {}", payload, e);
+        }
+
     }
 
     @KafkaListener(topics = "user-left",
