@@ -6,6 +6,7 @@ services:
     container_name: kafka
     ports:
       - "9092:9092"
+      - "9093:9093" # Added for controller port
     environment:
       - KAFKA_KRAFT_MODE=yes                         # ✅ Enable KRaft mode
       - KAFKA_CFG_PROCESS_ROLES=broker,controller    # ✅ Required roles
@@ -17,6 +18,11 @@ services:
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
       - KAFKA_CFG_LOG_DIRS=/bitnami/kafka/data
       - ALLOW_PLAINTEXT_LISTENER=yes
+
+      - # Performance improvements
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_CFG_NUM_PARTITIONS=3
+      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
 #    volumes:
 #      - ./kafka-data:/bitnami/kafka            # ✅ Mounts to ./socialDemo/kafka-data
 
