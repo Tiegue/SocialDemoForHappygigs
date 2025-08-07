@@ -1,4 +1,4 @@
-package com.happygigs.social.health;
+package socialdemo.graphql.healthcheck;
 
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.DescribeClusterResult;

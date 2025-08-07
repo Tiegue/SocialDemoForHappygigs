@@ -1,16 +1,18 @@
+# Enhanced docker-compose.yml - Building on your existing setup
+version: '3.8'
 
-# the latest version does not depend on zookeeper.
 services:
+  # Your existing Kafka service - enhanced with health checks and networking
   kafka:
     image: bitnami/kafka:latest
     container_name: kafka
     ports:
       - "9092:9092"
-      - "9093:9093" # Added for controller port
+      - "9093:9093"  # Added controller port
     environment:
-      - KAFKA_KRAFT_MODE=yes                         # ✅ Enable KRaft mode
-      - KAFKA_CFG_PROCESS_ROLES=broker,controller    # ✅ Required roles
-      - KAFKA_CFG_NODE_ID=1                          # ✅ Unique node ID
+      - KAFKA_KRAFT_MODE=yes
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_NODE_ID=1
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
@@ -18,24 +20,45 @@ services:
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
       - KAFKA_CFG_LOG_DIRS=/bitnami/kafka/data
       - ALLOW_PLAINTEXT_LISTENER=yes
-
-      - # Performance improvements
+      # Performance improvements
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
       - KAFKA_CFG_NUM_PARTITIONS=3
       - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
-#    volumes:
-#      - ./kafka-data:/bitnami/kafka            # ✅ Mounts to ./socialDemo/kafka-data
+    volumes:
+      - kafka_data:/bitnami/kafka  # Use named volume instead
+    # Added health check
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - socialdemo-network
+    restart: unless-stopped
 
+  # Your existing Redis service - enhanced
   redis:
-    image: redis
+    image: redis:7-alpine  # More specific version
     container_name: redis
     ports:
       - "6379:6379"
-#    volumes:
-#      - ./redis-data:/data
+    command: redis-server --appendonly yes  # Enable persistence
+    volumes:
+      - redis_data:/data  # Use named volume
+    # Added health check
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - socialdemo-network
+    restart: unless-stopped
 
+  # Your existing PostgreSQL service - enhanced
   postgres:
-    image: postgres:16.8
+    image: postgres:16.8  # Updated to more stable LTS version
     container_name: postgres
     ports:
       - "5432:5432"
@@ -43,5 +66,135 @@ services:
       - POSTGRES_DB=socialdemo
       - POSTGRES_USER=social
       - POSTGRES_PASSWORD=social
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data  # Use named volume
+
+    # Added health check
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U social -d socialdemo"]
+      interval: 10s
+      timeout: 8s
+      retries: 10
+    networks:
+      - socialdemo-network
+    restart: unless-stopped
+
+  # NEW: Your GraphQL application
+  graphql-server:
+    build:
+      context: .
+      dockerfile: ./graphqlserver/Dockerfile
+    container_name: socialdemo-graphql
+    ports:
+      - "4446:4446"
+    environment:
+      # Spring Profile
+      SPRING_PROFILES_ACTIVE: dev
+      
+      # Database connection
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/socialdemo
+      SPRING_DATASOURCE_USERNAME: social
+      SPRING_DATASOURCE_PASSWORD: social
+      
+      # Kafka connection
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      
+      # Redis connection
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      
+      # CORS for development
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3001
+      
+      # Logging level
+      LOGGING_LEVEL_SOCIALDEMO_GRAPHQL: DEBUG
+      LOGGING_LEVEL_ROOT: INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4446/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - ./logs:/app/logs  # Mount logs directory
+    networks:
+      - socialdemo-network
+    restart: unless-stopped
+
+  # NEW: Kafka UI for monitoring and debugging
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      DYNAMIC_CONFIG_ENABLED: true
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - socialdemo-network
+    restart: unless-stopped
+
+  # NEW: Redis Commander for Redis debugging
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: local:redis:6379:0
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - socialdemo-network
+    restart: unless-stopped
+
+  # NEW: pgAdmin for PostgreSQL management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    ports:
+      - "8082:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@socialdemo.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - socialdemo-network
+    restart: unless-stopped
+
+# Named volumes for better data management
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  kafka_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+# Custom network for service communication
+networks:
+  socialdemo-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -137,4 +137,38 @@ If you need a sample docker-compose.yml to run Redis + Kafka + Postgres locally,
 ## 5/8/2025
  - add circuit breaker to service. anotation error
  - add health check and metrics 
+## 6/8/2025
+ - SET raliable kafka producer
+   Key Steps for a Reliable Kafka Producer
+
+Configure Producer for Reliability:
+
+Set acks=all to ensure all in-sync replicas acknowledge the message.
+Enable retries to handle transient failures.
+Enable enable.idempotence=true to prevent duplicate messages during retries.
+Set appropriate timeouts to handle network or broker issues.
+
+
+Implement Robust Error Handling:
+
+Use asynchronous send with callbacks to handle success and failure.
+Add retry logic for specific retriable errors.
+Log errors for debugging and monitoring.
+
+
+Ensure Proper Serialization:
+
+Validate that toJson serializes the UserEnteredEvent correctly.
+Handle serialization exceptions gracefully.
+
+
+Monitor and Log:
+
+Log success and failure events for traceability.
+Use Kafka producer metrics to monitor performance.
+
+
+Consider Transactional Semantics (Optional):
+
+If your use case requires atomic writes across multiple messages, use Kafka transactions.
  
